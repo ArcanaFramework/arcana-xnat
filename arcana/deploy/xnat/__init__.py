@@ -1,1 +1,2 @@
-# Import all deployment container image classes in the namespace package here
+from .image import XnatCSImage
+from .command import XnatCSCommand
