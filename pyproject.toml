@@ -25,13 +25,6 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dynamic = ["version"]
-namespace = "arcana"
-namespace_packages = [
-    "cli.xnat",
-    "data.xnat",
-    "deploy.xnat",
-    "utils.xnat",
-]
 
 [project.optional-dependencies]
 dev = [
@@ -56,22 +49,13 @@ test = [
 ]
 
 [tool.flit.module]
-name = "arcana"
-
-# [tool.flit.metadata]
-# 
-# namespace_packages = [
-#     "cli.xnat",
-#     "data.xnat",
-#     "deploy.xnat",
-#     "utils.xnat",
-# ]
+name = "arcana.xnat"
 
 [tool.flit.sdist]
 exclude = [".gitignore"]
 
 [tool.setuptools_scm]
-write_to = "arcana/utils/xnat/_version.py"
+write_to = "arcana/xnat/_version.py"
 
 [tool.black]
 line-length = 88
