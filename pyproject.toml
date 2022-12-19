@@ -53,7 +53,12 @@ name = "arcana"
 
 [tool.flit.metadata]
 namespace = "arcana"
-namespace_packages = ["data.xnat", "deploy.xnat", "utils.xnat"]
+namespace_packages = [
+    "cli.xnat",
+    "data.xnat",
+    "deploy.xnat",
+    "utils.xnat",
+]
 
 [tool.flit.sdist]
 exclude = [".gitignore"]
