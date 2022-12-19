@@ -11,8 +11,8 @@ dependencies = [
     "arcana >=2.0b",
 ]
 license = {file = "LICENSE"}
-authors = [{name = "YOUR-NAME", email = "YOUR-EMAIL"}]
-maintainers = [{name = "YOUR-NAME", email = "YOUR-EMAIL"}]
+authors = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
+maintainers = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
 keywords = ["arcana"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -25,10 +25,17 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dynamic = ["version"]
+namespace = "arcana"
+namespace_packages = [
+    "cli.xnat",
+    "data.xnat",
+    "deploy.xnat",
+    "utils.xnat",
+]
 
 [project.optional-dependencies]
 dev = [
-    "black",
+    # "black",
     "pre-commit",
 ]
 doc = [
@@ -51,14 +58,14 @@ test = [
 [tool.flit.module]
 name = "arcana"
 
-[tool.flit.metadata]
-namespace = "arcana"
-namespace_packages = [
-    "cli.xnat",
-    "data.xnat",
-    "deploy.xnat",
-    "utils.xnat",
-]
+# [tool.flit.metadata]
+# 
+# namespace_packages = [
+#     "cli.xnat",
+#     "data.xnat",
+#     "deploy.xnat",
+#     "utils.xnat",
+# ]
 
 [tool.flit.sdist]
 exclude = [".gitignore"]

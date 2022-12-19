@@ -22,3 +22,4 @@ __pycache__
 ~*
 /arcana/utils/xnat/_version.py
 /test-data/dicom-dataset
+*.venv
