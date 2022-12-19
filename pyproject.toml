@@ -3,11 +3,13 @@ requires = ["flit_scm"]
 build-backend = "flit_scm:buildapi"
 
 [project]
-name = "arcana-TODO"
-description = "Description for arcana-TODO goes here"
+name = "arcana-xnat"
+description = "An extension of the Arcana framework to apply workflows and analyses on data stored within XNAT data repositories"
 readme = "README.rst"
 requires-python = ">=3.8"
-dependencies = ["arcana >=2.0b"]
+dependencies = [
+    "arcana >=2.0b",
+]
 license = {file = "LICENSE"}
 authors = [{name = "YOUR-NAME", email = "YOUR-EMAIL"}]
 maintainers = [{name = "YOUR-NAME", email = "YOUR-EMAIL"}]
@@ -51,13 +53,13 @@ name = "arcana"
 
 [tool.flit.metadata]
 namespace = "arcana"
-namespace_packages = ["analysis.TODO", "data.TODO", "deploy.TODO", "utils.TODO"]
+namespace_packages = ["data.xnat", "deploy.xnat", "utils.xnat"]
 
 [tool.flit.sdist]
 exclude = [".gitignore"]
 
 [tool.setuptools_scm]
-write_to = "arcana/utils/TODO/_version.py"
+write_to = "arcana/utils/xnat/_version.py"
 
 [tool.black]
 line-length = 88
