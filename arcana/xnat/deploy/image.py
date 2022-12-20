@@ -7,12 +7,12 @@ from neurodocker.reproenv import DockerRenderer
 from arcana.data.stores.xnat import XnatViaCS
 from arcana.core.utils.serialize import ClassResolver, ObjectConverter
 from arcana.core.data.store import DataStore
-from arcana.core.deploy.image import AppImage
+from arcana.core.deploy.image import App
 from .command import XnatCSCommand
 
 
 @attrs.define(kw_only=True)
-class XnatCSImage(AppImage):
+class XnatCSImage(App):
 
     command: XnatCSCommand = attrs.field(
         converter=ObjectConverter(
