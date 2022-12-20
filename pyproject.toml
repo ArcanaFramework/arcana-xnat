@@ -8,7 +8,7 @@ description = "An extension of the Arcana framework to apply workflows and analy
 readme = "README.rst"
 requires-python = ">=3.8"
 dependencies = [
-    "arcana >=2.0b",
+    "arcana >=2.0b2",
 ]
 license = {file = "LICENSE"}
 authors = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
@@ -45,6 +45,8 @@ test = [
     "pytest >= 4.4.0",
     "pytest-cov",
     "pytest-env",
+    "xnat4tests >=0.3.3",
+    "medimages4tests >=0.3",
     "codecov",
 ]
 

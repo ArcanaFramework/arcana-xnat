@@ -10,7 +10,7 @@ import numpy
 import nibabel
 from click.testing import CliRunner
 import xnat4tests
-from arcana.data.stores.xnat.api import Xnat
+from arcana.xnat.data import Xnat
 from arcana.data.spaces.medimage import Clinical
 from arcana.data.types.common import Text, Directory
 from arcana.data.types.medimage import NiftiGzX, NiftiGz, Dicom, NiftiX

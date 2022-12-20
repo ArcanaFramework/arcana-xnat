@@ -4,8 +4,8 @@ import re
 import attrs
 from arcana.core.data.type.base import FileGroup
 from arcana.core.deploy.command.base import ContainerCommand
-from arcana.data.stores.xnat import XnatViaCS
-from arcana.data.spaces.medimage import Clinical
+from arcana.xnat.data import XnatViaCS
+from arcana.medimage import Clinical
 from arcana.core.utils.serialize import ClassResolver
 
 if ty.TYPE_CHECKING:
