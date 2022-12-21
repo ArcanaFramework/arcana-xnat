@@ -316,3 +316,44 @@ else:
 def catch_cli_exceptions():
     return CATCH_CLI_EXCEPTIONS
 
+
+@pytest.fixture(scope="session")
+def command_spec():
+    return {
+        "task": "arcana.core.utils.testing.tasks:concatenate",
+        "inputs": {
+            "first_file": {
+                "datatype": "common:Text",
+                "field": "in_file1",
+                "default_column": {
+                    "row_frequency": "session",
+                },
+                "help_string": "the first file to pass as an input",
+            },
+            "second_file": {
+                "datatype": "common:Text",
+                "field": "in_file2",
+                "default_column": {
+                    "row_frequency": "session",
+                },
+                "help_string": "the second file to pass as an input",
+            },
+        },
+        "outputs": {
+            "concatenated": {
+                "datatype": "common:Text",
+                "field": "out_file",
+                "help_string": "an output file",
+            }
+        },
+        "parameters": {
+            "number_of_duplicates": {
+                "field": "duplicates",
+                "default": 2,
+                "datatype": "int",
+                "required": True,
+                "help_string": "a parameter",
+            }
+        },
+        "row_frequency": "session",
+    }
