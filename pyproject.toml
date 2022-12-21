@@ -9,6 +9,7 @@ readme = "README.rst"
 requires-python = ">=3.8"
 dependencies = [
     "arcana >=2.0b2",
+    "arcana-medimage >= 0.1",
 ]
 license = {file = "LICENSE"}
 authors = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
@@ -47,6 +48,7 @@ test = [
     "pytest-env",
     "xnat4tests >=0.3.3",
     "medimages4tests >=0.3",
+    "arcana-bids >=0.1",
     "codecov",
 ]
 
