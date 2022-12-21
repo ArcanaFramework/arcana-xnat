@@ -4,20 +4,20 @@ from pathlib import Path
 import json
 import attrs
 from neurodocker.reproenv import DockerRenderer
-from arcana.data.stores.xnat import XnatViaCS
+from arcana.xnat.data import XnatViaCS
 from arcana.core.utils.serialize import ClassResolver, ObjectConverter
 from arcana.core.data.store import DataStore
 from arcana.core.deploy.image import App
-from .command import XnatCSCommand
+from ..command import XnatCommand
 
 
 @attrs.define(kw_only=True)
-class XnatCSImage(App):
+class XnatApp(App):
 
-    command: XnatCSCommand = attrs.field(
+    command: XnatCommand = attrs.field(
         converter=ObjectConverter(
-            XnatCSCommand
-        )  # Change the command type to XnatCSCommand subclass
+            XnatCommand
+        )  # Change the command type to XnatCommand subclass
     )
 
     def construct_dockerfile(

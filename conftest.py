@@ -4,6 +4,7 @@ import sys
 from tempfile import mkdtemp
 import json
 import tempfile
+from datetime import datetime
 from pathlib import Path
 import pytest
 import numpy
@@ -11,10 +12,9 @@ import nibabel
 from click.testing import CliRunner
 import xnat4tests
 from arcana.xnat.data import Xnat
-from arcana.data.spaces.medimage import Clinical
-from arcana.data.types.common import Text, Directory
-from arcana.data.types.medimage import NiftiGzX, NiftiGz, Dicom, NiftiX
-from arcana.core.utils.testing.data.stores.xnat import (
+from arcana.medimage.data import Clinical, NiftiGzX, NiftiGz, Dicom, NiftiX
+from arcana.common.data import Text, Directory
+from arcana.xnat.utils.testing import (
     make_mutable_dataset,
     TestXnatDatasetBlueprint,
     ResourceBlueprint,
@@ -44,6 +44,11 @@ logger.addHandler(sch)
 def nifti_sample_dir(pkg_dir):
     return pkg_dir / "test-data" / "nifti"
 
+
+@pytest.fixture(scope="session")
+def run_prefix():
+    "A datetime string used to avoid stale data left over from previous tests"
+    return datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")
 
 
 @pytest.fixture

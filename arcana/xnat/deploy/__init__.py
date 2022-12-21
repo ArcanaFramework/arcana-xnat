@@ -1,2 +1,2 @@
-from .image import XnatCSImage
-from .command import XnatCSCommand
+from .image import XnatApp
+from .command import XnatCommand
