@@ -15,7 +15,7 @@ import xnat4tests
 from arcana.xnat.data import Xnat
 from arcana.core.deploy.image.base import BaseImage
 from arcana.medimage.data import Clinical, NiftiGzX, NiftiGz, Dicom, NiftiX
-from arcana.common.data import Text, Directory
+from arcana.dirtree.data import Text, Directory
 from arcana.xnat.utils.testing import (
     make_mutable_dataset,
     TestXnatDatasetBlueprint,
