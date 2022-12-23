@@ -8,7 +8,7 @@ from arcana.xnat.data import XnatViaCS
 from arcana.core.utils.serialize import ClassResolver, ObjectConverter
 from arcana.core.data.store import DataStore
 from arcana.core.deploy.image import App
-from ..command import XnatCommand
+from .command import XnatCommand
 
 
 @attrs.define(kw_only=True)
