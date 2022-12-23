@@ -124,4 +124,3 @@ class XnatApp(App):
             source=["./stores.yaml"],
             destination=self.IN_DOCKER_ARCANA_HOME_DIR + "/stores.yaml",
         )
-        dockerfile.env(ARCANA_HOME=self.IN_DOCKER_ARCANA_HOME_DIR)

@@ -82,7 +82,10 @@ class XnatCommand(ContainerCommand):
 
         cmd_json = {
             "name": self.name,
-            "description": f"{self.name} {self.image.version}{build_iteration_str}: {self.image.description}",
+            "description": (
+                f"{self.name} {self.image.version}{build_iteration_str}: "
+                f"{self.image.description}"
+            ),
             "label": self.name,
             "schema-version": "1.0",
             "image": self.image.reference,
@@ -224,7 +227,7 @@ class XnatCommand(ContainerCommand):
                 "type": "string",
                 "default-value": (
                     "--plugin serial "
-                    "--work /wl "  # NB: work dir moved inside container due to file-locking issue on some mounted volumes (see https://github.com/tox-dev/py-filelock/issues/147)
+                    "--work /wl "  # noqa NB: work dir moved inside container due to file-locking issue on some mounted volumes (see https://github.com/tox-dev/py-filelock/issues/147)
                     "--dataset-name default "
                     "--loglevel info "
                     f"--export-work {XnatViaCS.WORK_MOUNT}"
