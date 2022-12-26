@@ -2,10 +2,10 @@ from __future__ import annotations
 import typing as ty
 import re
 import attrs
-from arcana.core.data.type.base import FileGroup
+from fileformats.core import FileGroup
 from arcana.core.deploy.command.base import ContainerCommand
 from arcana.xnat.data import XnatViaCS
-from arcana.spaces.data import Clinical
+from arcana.core.data.space import Clinical
 from arcana.core.utils.serialize import ClassResolver
 
 if ty.TYPE_CHECKING:

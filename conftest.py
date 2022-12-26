@@ -9,24 +9,30 @@ from pathlib import Path
 import pytest
 import numpy
 import docker
+import random
 import nibabel
 from click.testing import CliRunner
 import xnat4tests
-from arcana.xnat.data import Xnat
 from arcana.core.deploy.image.base import BaseImage
-from arcana.medimage.data import Clinical, NiftiGzX, NiftiGz, Dicom, NiftiX
-from arcana.dirtree.data import Text, Directory
-from arcana.xnat.utils.testing import (
-    make_mutable_dataset,
+from arcana.core.data import Clinical
+from fileformats.medimage import NiftiGzX, NiftiGz, Dicom, NiftiX
+from fileformats.common import Text, Directory
+from arcana.xnat.data.api import (
+    Xnat,
     TestXnatDatasetBlueprint,
     ResourceBlueprint,
     ScanBlueprint,
-    DerivBlueprint,
-    create_dataset_data_in_repo,
-    make_project_id,
-    access_dataset,
 )
-from arcana.core.utils.testing.data import save_dataset as save_file_system_dataset
+from arcana.xnat.data.cs import XnatViaCS
+from arcana.core.data.store import DerivBlueprint
+
+# from arcana.xnat.utils.testing import (
+#     make_mutable_dataset,
+#     create_dataset_data_in_repo,
+#     make_project_id,
+#     access_dataset,
+# )
+# from arcana.core.utils.testing.data import save_dataset as save_file_system_dataset
 
 # Set DEBUG logging for unittests
 
@@ -68,7 +74,7 @@ def cli_runner(catch_cli_exceptions):
 
 
 @pytest.fixture
-def work_dir():
+def work_dir() -> Path:
     work_dir = tempfile.mkdtemp()
     return Path(work_dir)
 
@@ -76,7 +82,6 @@ def work_dir():
 @pytest.fixture(scope="session")
 def build_cache_dir():
     return Path(mkdtemp())
-
 
 
 @pytest.fixture(scope="session")
@@ -91,78 +96,178 @@ def pkg_dir():
 
 TEST_XNAT_DATASET_BLUEPRINTS = {
     "basic": TestXnatDatasetBlueprint(  # dataset name
-        [1, 1, 3],  # number of timepoints, groups and members respectively
-        [
+        dim_lengths=[1, 1, 3],  # number of timepoints, groups and members respectively
+        scans=[
             ScanBlueprint(
-                "scan1",  # scan type (ID is index)
-                [
+                name="scan1",  # scan type (ID is index)
+                resources=[
                     ResourceBlueprint(
-                        "Text", Text, ["file.txt"]  # resource name  # Data datatype
+                        name="Text",
+                        datatype=Text,
+                        filenames=["file.txt"],  # resource name  # Data datatype
                     )
                 ],
             ),  # name files to place within resource
             ScanBlueprint(
-                "scan2",
-                [ResourceBlueprint("NiftiGzX", NiftiGzX, ["file.nii.gz", "file.json"])],
-            ),
-            ScanBlueprint(
-                "scan3",
-                [
+                name="scan2",
+                resources=[
                     ResourceBlueprint(
-                        "Directory", Directory, ["doubledir", "dir", "file.dat"]
+                        name="NiftiGzX",
+                        datatype=NiftiGzX,
+                        filenames=["file.nii.gz", "file.json"],
                     )
                 ],
             ),
             ScanBlueprint(
-                "scan4",
-                [
+                name="scan3",
+                resources=[
                     ResourceBlueprint(
-                        "DICOM", Dicom, ["file1.dcm", "file2.dcm", "file3.dcm"]
+                        name="Directory",
+                        datatype=Directory,
+                        filenames=["doubledir", "dir", "file.dat"],
+                    )
+                ],
+            ),
+            ScanBlueprint(
+                name="scan4",
+                resources=[
+                    ResourceBlueprint(
+                        name="DICOM",
+                        datatype=Dicom,
+                        filenames=["file1.dcm", "file2.dcm", "file3.dcm"],
                     ),
-                    ResourceBlueprint("NIFTI", NiftiGz, ["file1.nii.gz"]),
-                    ResourceBlueprint("BIDS", None, ["file1.json"]),
-                    ResourceBlueprint("SNAPSHOT", None, ["file1.png"]),
+                    ResourceBlueprint(
+                        "NIFTI", datatype=NiftiGz, filenames=["file1.nii.gz"]
+                    ),
+                    ResourceBlueprint("BIDS", datatype=None, filenames=["file1.json"]),
+                    ResourceBlueprint(
+                        "SNAPSHOT", datatype=None, filenames=["file1.png"]
+                    ),
                 ],
             ),
         ],
-        [],
-        [
-            DerivBlueprint("deriv1", Clinical.timepoint, Text, ["file.txt"]),
+        derivatives=[
             DerivBlueprint(
-                "deriv2", Clinical.subject, NiftiGzX, ["file.nii.gz", "file.json"]
+                name="deriv1",
+                row_frequency=Clinical.timepoint,
+                datatype=Text,
+                filenames=["file.txt"],
             ),
-            DerivBlueprint("deriv3", Clinical.batch, Directory, ["dir"]),
-            DerivBlueprint("deriv4", Clinical.dataset, Text, ["file.txt"]),
+            DerivBlueprint(
+                name="deriv2",
+                row_frequency=Clinical.subject,
+                datatype=NiftiGzX,
+                filenames=["file.nii.gz", "file.json"],
+            ),
+            DerivBlueprint(
+                name="deriv3",
+                row_frequency=Clinical.batch,
+                datatype=Directory,
+                filenames=["dir"],
+            ),
+            DerivBlueprint(
+                name="deriv4",
+                row_frequency=Clinical.dataset,
+                datatype=Text,
+                filenames=["file.txt"],
+            ),
         ],
     ),  # id_inference dict
     "multi": TestXnatDatasetBlueprint(  # dataset name
-        [2, 2, 2],  # number of timepoints, groups and members respectively
-        [ScanBlueprint("scan1", [ResourceBlueprint("Text", Text, ["file.txt"])])],
-        [
+        dim_lengths=[2, 2, 2],  # number of timepoints, groups and members respectively
+        scans=[
+            ScanBlueprint(
+                name="scan1",
+                resources=[
+                    ResourceBlueprint(
+                        name="Text", datatype=Text, filenames=["file.txt"]
+                    )
+                ],
+            )
+        ],
+        id_inference=[
             ("subject", r"group(?P<group>\d+)member(?P<member>\d+)"),
             ("session", r"timepoint(?P<timepoint>\d+).*"),
         ],  # id_inference dict
-        [
-            DerivBlueprint("deriv1", Clinical.session, Text, ["file.txt"]),
+        derivatives=[
             DerivBlueprint(
-                "deriv2", Clinical.subject, NiftiGzX, ["file.nii.gz", "file.json"]
+                name="deriv1",
+                row_frequency=Clinical.session,
+                datatype=Text,
+                filenames=["file.txt"],
             ),
-            DerivBlueprint("deriv3", Clinical.timepoint, Directory, ["doubledir"]),
-            DerivBlueprint("deriv4", Clinical.member, Text, ["file.txt"]),
-            DerivBlueprint("deriv5", Clinical.dataset, Text, ["file.txt"]),
-            DerivBlueprint("deriv6", Clinical.batch, Text, ["file.txt"]),
-            DerivBlueprint("deriv7", Clinical.matchedpoint, Text, ["file.txt"]),
-            DerivBlueprint("deriv8", Clinical.group, Text, ["file.txt"]),
+            DerivBlueprint(
+                name="deriv2",
+                row_frequency=Clinical.subject,
+                datatype=NiftiGzX,
+                filenames=["file.nii.gz", "file.json"],
+            ),
+            DerivBlueprint(
+                name="deriv3",
+                row_frequency=Clinical.timepoint,
+                datatype=Directory,
+                filenames=["doubledir"],
+            ),
+            DerivBlueprint(
+                name="deriv4",
+                row_frequency=Clinical.member,
+                datatype=Text,
+                filenames=["file.txt"],
+            ),
+            DerivBlueprint(
+                name="deriv5",
+                row_frequency=Clinical.dataset,
+                datatype=Text,
+                filenames=["file.txt"],
+            ),
+            DerivBlueprint(
+                name="deriv6",
+                row_frequency=Clinical.batch,
+                datatype=Text,
+                filenames=["file.txt"],
+            ),
+            DerivBlueprint(
+                name="deriv7",
+                row_frequency=Clinical.matchedpoint,
+                datatype=Text,
+                filenames=["file.txt"],
+            ),
+            DerivBlueprint(
+                name="deriv8",
+                row_frequency=Clinical.group,
+                datatype=Text,
+                filenames=["file.txt"],
+            ),
         ],
     ),
     "concatenate_test": TestXnatDatasetBlueprint(
-        [1, 1, 2],
-        [
-            ScanBlueprint("scan1", [ResourceBlueprint("Text", Text, ["file1.txt"])]),
-            ScanBlueprint("scan2", [ResourceBlueprint("Text", Text, ["file2.txt"])]),
+        dim_lengths=[1, 1, 2],
+        scans=[
+            ScanBlueprint(
+                name="scan1",
+                resources=[
+                    ResourceBlueprint(
+                        name="Text", datatype=Text, filenames=["file1.txt"]
+                    )
+                ],
+            ),
+            ScanBlueprint(
+                name="scan2",
+                resources=[
+                    ResourceBlueprint(
+                        name="Text", datatype=Text, filenames=["file2.txt"]
+                    )
+                ],
+            ),
         ],
-        {},
-        [DerivBlueprint("concatenated", Clinical.session, Text, ["concatenated.txt"])],
+        derivatives=[
+            DerivBlueprint(
+                name="concatenated",
+                row_frequency=Clinical.session,
+                datatype=Text,
+                filenames=["concatenated.txt"],
+            )
+        ],
     ),
 }
 
@@ -175,61 +280,60 @@ MUTABLE_DATASETS = ["basic.api", "multi.api", "basic.cs", "multi.cs"]
 
 
 @pytest.fixture(params=GOOD_DATASETS, scope="session")
-def xnat_dataset(xnat_repository, xnat_archive_dir, request):
+def xnat_dataset(xnat_repository: Xnat, xnat_archive_dir: Path, run_prefix: str, request):
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
-    run_prefix = xnat_repository.__annotations__["run_prefix"]
+    project_id = run_prefix + dataset_id
     with xnat4tests.connect() as login:
-        if make_project_id(dataset_id, run_prefix) not in login.projects:
-            create_dataset_data_in_repo(dataset_id, blueprint, run_prefix)
-    return access_dataset(
-        dataset_id=dataset_id,
+        if project_id not in login.projects:
+            xnat_repository.create_test_dataset_data(project_id, blueprint)
+    store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
+    return store.access_test_dataset(
+        dataset_id=project_id,
         blueprint=blueprint,
-        xnat_repository=xnat_repository,
-        xnat_archive_dir=xnat_archive_dir,
-        access_method=access_method,
     )
 
 
 @pytest.fixture(params=MUTABLE_DATASETS, scope="function")
-def mutable_xnat_dataset(xnat_repository, xnat_archive_dir, request):
+def mutable_dataset(xnat_repository: Xnat, xnat_archive_dir: Path, run_prefix: str, request):
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
-    return make_mutable_dataset(
-        dataset_id=dataset_id,
+    project_id = (
+        run_prefix
+        + dataset_id
+        + "mutable"
+        + access_method
+        + str(hex(random.getrandbits(16)))[2:]
+    )
+    store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
+    return store.make_test_dataset(
         blueprint=blueprint,
-        xnat_repository=xnat_repository,
-        xnat_archive_dir=xnat_archive_dir,
-        access_method=access_method,
-        dataset_name="test",
+        dataset_id=project_id,
     )
 
 
-multi_store = ["file_system", "xnat"]
-
-
-@pytest.fixture(params=multi_store)
-def saved_dataset_multi_store(xnat_archive_dir, xnat_repository, work_dir, request):
-    if request.param == "file_system":
-        return save_file_system_dataset(work_dir)
-    elif request.param == "xnat":
-        blueprint = TestXnatDatasetBlueprint(
-            dim_lengths=[1, 1, 1, 1],
-            scans=["file1.txt", "file2.txt"],
-            id_inference={},
-            derivatives=[],
+def get_test_repo(
+    project_id: str,
+    access_method: str,
+    xnat_repository: Xnat,
+    xnat_archive_dir: Path,
+):
+    if access_method == "cs":
+        proj_dir = xnat_archive_dir / project_id / "arc001"
+        store = XnatViaCS(
+            server=xnat_repository.server,
+            user=xnat_repository.user,
+            password=xnat_repository.password,
+            cache_dir=xnat_repository.cache_dir,
+            row_frequency=Clinical.dataset,
+            input_mount=proj_dir,
+            output_mount=Path(mkdtemp()),
         )
-        dataset = make_mutable_dataset(
-            "saved_dataset",
-            blueprint,
-            xnat_repository,
-            xnat_archive_dir,
-            access_method="api",
-        )
-        dataset.save()
-        return dataset
+    elif access_method == "api":
+        store = xnat_repository
     else:
-        assert False
+        assert False, f"unrecognised access method {access_method}"
+    return store
 
 
 @pytest.fixture(scope="session")
@@ -250,6 +354,24 @@ def xnat_archive_dir(xnat_root_dir):
 
 @pytest.fixture(scope="session")
 def xnat_repository(run_prefix, xnat4tests_config):
+
+    xnat4tests.start_xnat()
+
+    repository = Xnat(
+        server=xnat4tests_config.xnat_uri,
+        user=xnat4tests_config.xnat_user,
+        password=xnat4tests_config.xnat_password,
+        cache_dir=mkdtemp(),
+    )
+
+    # Stash a project prefix in the repository object
+    repository.__annotations__["run_prefix"] = run_prefix
+
+    yield repository
+
+
+@pytest.fixture(scope="session")
+def xnat_via_cs_repository(run_prefix, xnat4tests_config):
 
     xnat4tests.start_xnat()
 
@@ -537,3 +659,79 @@ ENTRYPOINT ["/launch.sh"]"""
     dc.images.build(path=str(build_dir), tag=tag_name)
 
     return tag_name
+
+
+# proj_name = (run_prefix if run_prefix else "") + dataset_id + test_suffix
+
+# def make_mutable_dataset(
+#     dataset_id: str,
+#     blueprint: TestDatasetBlueprint,
+#     xnat_repository: Xnat,
+#     xnat_archive_dir: Path,
+#     access_method: str,
+#     dataset_name: str = None,
+#     source_data: Path = None,
+# ):
+#     """Create a dataset (project) in the test XNAT repository"""
+#     test_suffix = "mutable" + access_method + str(hex(random.getrandbits(16)))[2:]
+#     run_prefix = xnat_repository.__annotations__["run_prefix"]
+#     # Need to create a new dataset per function so it can be safely modified
+#     # by the test without messing up other tests.
+#     create_dataset_data_in_repo(
+#         dataset_name=dataset_id,
+#         blueprint=blueprint,
+#         run_prefix=run_prefix,
+#         test_suffix=test_suffix,
+#         source_data=source_data,
+#     )
+#     return access_dataset(
+#         xnat_repository=xnat_repository,
+#         dataset_id=dataset_id,
+#         dataset_name=dataset_name,
+#         blueprint=blueprint,
+#         access_method=access_method,
+#         xnat_archive_dir=xnat_archive_dir,
+#         test_suffix=test_suffix,
+#     )
+
+
+# def access_dataset(
+#     xnat_repository: Xnat,
+#     dataset_id: str,
+#     blueprint: TestXnatDatasetBlueprint,
+#     access_method: str,
+#     xnat_archive_dir: Path,
+#     dataset_name: str = None,
+#     test_suffix: str = "",
+# ):
+
+#     run_prefix = xnat_repository.__annotations__["run_prefix"]
+#     proj_name = make_project_id(dataset_id, run_prefix, test_suffix)
+#     if access_method == "cs":
+#         # Create a new repository access object that accesses data directly
+#         # via the XNAT archive directory, like
+#         proj_dir = xnat_archive_dir / proj_name / "arc001"
+#         # xnat_repository = XnatViaCS(
+#         #     server=xnat_repository.server,
+#         #     user=xnat_repository.user,
+#         #     password=xnat_repository.password,
+#         #     cache_dir=xnat_repository.cache_dir,
+#         #     row_frequency=Clinical.dataset,
+#         #     input_mount=proj_dir,
+#         #     output_mount=Path(mkdtemp()),
+#         # )
+#     elif access_method != "api":
+#         assert False
+
+#     dataset = xnat_repository.new_dataset(
+#         proj_name, id_inference=blueprint.id_inference, name=dataset_name
+#     )
+#     # Stash the args used to create the dataset in attributes so they can be
+#     # used by tests
+#     dataset.__annotations__["blueprint"] = blueprint
+#     dataset.__annotations__["access_method"] = access_method
+#     return dataset
+
+
+# def make_project_id(dataset_name: str, run_prefix: str = None, test_suffix: str = ""):
+#     return (run_prefix if run_prefix else "") + dataset_name + test_suffix
