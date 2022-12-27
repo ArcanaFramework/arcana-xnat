@@ -8,8 +8,8 @@ description = "An extension of the Arcana framework to apply workflows and analy
 readme = "README.rst"
 requires-python = ">=3.8"
 dependencies = [
-    # "arcana-core >=0.8.4",
-    "arcana-core @ git+https://github.com/ArcanaFramework/arcana-core@main",
+    "arcana-core >=0.8.6",
+    # "arcana-core @ git+https://github.com/ArcanaFramework/arcana-core@main",
     "xnat >=0.4.3",
     "fileformats-core >= 0.1",
     "fileformats-common >= 0.1",
