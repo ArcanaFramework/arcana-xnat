@@ -286,7 +286,10 @@ def xnat_dataset(xnat_repository: Xnat, xnat_archive_dir: Path, run_prefix: str,
     project_id = run_prefix + dataset_id
     with xnat4tests.connect() as login:
         if project_id not in login.projects:
-            xnat_repository.create_test_dataset_data(project_id, blueprint)
+            xnat_repository.create_test_dataset_data(
+                dataset_id=project_id,
+                blueprint=blueprint
+            )
     store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
     return store.access_test_dataset(
         dataset_id=project_id,
@@ -462,7 +465,7 @@ def command_spec():
         "task": "arcana.core.utils.testing.tasks:concatenate",
         "inputs": {
             "first_file": {
-                "datatype": "common:Text",
+                "datatype": "fileformats.common:Text",
                 "field": "in_file1",
                 "default_column": {
                     "row_frequency": "session",
@@ -470,7 +473,7 @@ def command_spec():
                 "help_string": "the first file to pass as an input",
             },
             "second_file": {
-                "datatype": "common:Text",
+                "datatype": "fileformats.common:Text",
                 "field": "in_file2",
                 "default_column": {
                     "row_frequency": "session",
@@ -480,7 +483,7 @@ def command_spec():
         },
         "outputs": {
             "concatenated": {
-                "datatype": "common:Text",
+                "datatype": "fileformats.common:Text",
                 "field": "out_file",
                 "help_string": "an output file",
             }
@@ -511,21 +514,21 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "anat/T1w",
             },
-            "datatype": "medimage:NiftiGzX",
+            "datatype": "fileformats.medimage:NiftiGzX",
             "help_string": "T1-weighted image",
         },
         "T2w": {
             "configuration": {
                 "path": "anat/T2w",
             },
-            "datatype": "medimage:NiftiGzX",
+            "datatype": "fileformats.medimage:NiftiGzX",
             "help_string": "T2-weighted image",
         },
         "DWI": {
             "configuration": {
                 "path": "dwi/dwi",
             },
-            "datatype": "medimage:NiftiGzXFslgrad",
+            "datatype": "fileformats.medimage:NiftiGzXFslgrad",
             "help_string": "DWI-weighted image",
         },
     }
@@ -535,14 +538,14 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "file1",
             },
-            "datatype": "common:Text",
+            "datatype": "fileformats.common:Text",
             "help_string": "an output file",
         },
         "file2": {
             "configuration": {
                 "path": "file2",
             },
-            "datatype": "common:Text",
+            "datatype": "fileformats.common:Text",
             "help_string": "another output file",
         },
     }

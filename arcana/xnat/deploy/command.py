@@ -141,7 +141,7 @@ class XnatCommand(ContainerCommand):
                 desc = f"Match resource [SCAN_TYPE]: {inpt.help_string} "
                 input_type = "string"
             else:
-                desc = f"Match field ({inpt.datatype.dtype}) [FIELD_NAME]: {inpt.description} "
+                desc = f"Match field ({inpt.datatype}) [FIELD_NAME]: {inpt.help_string} "
                 input_type = self.COMMAND_INPUT_TYPES.get(inpt.datatype, "string")
             cmd_json["inputs"].append(
                 {

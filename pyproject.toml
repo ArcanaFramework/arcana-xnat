@@ -8,8 +8,10 @@ description = "An extension of the Arcana framework to apply workflows and analy
 readme = "README.rst"
 requires-python = ">=3.8"
 dependencies = [
-    "arcana-core >=2.0b2",
-    "arcana-medimage >= 0.1",
+    "arcana-core >=0.8.4",
+    "fileformats-core >= 0.1",
+    "fileformats-common >= 0.1",
+    "fileformats-medimage >= 0.1",
 ]
 license = {file = "LICENSE"}
 authors = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
