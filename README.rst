@@ -10,7 +10,8 @@ Arcana Extension - XNAT
 
 
 An extension of the Arcana framework to apply workflows and analyses on data stored
-within XNAT data repositories
+within XNAT data repositories. It provides the ``Xnat`` and ``XnatViaCS`` data stores
+and the ``XnatApp`` deployer.
 
 
 Quick Installation
