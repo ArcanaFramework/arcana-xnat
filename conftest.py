@@ -434,7 +434,7 @@ def dummy_niftix(work_dir):
     with open(json_path, "w") as f:
         json.dump({"test": "json-file"}, f)
 
-    return NiftiX.from_fs_paths(nifti_path, json_path)
+    return NiftiX.from_fspaths(nifti_path, json_path)
 
 
 # For debugging in IDE's don't catch raised exceptions and let the IDE
