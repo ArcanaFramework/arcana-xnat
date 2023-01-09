@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing as ty
 import re
 import attrs
-from fileformats.core import FileGroup
+from fileformats.core import FileSet
 from arcana.core.deploy.command.base import ContainerCommand
 from arcana.xnat.data import XnatViaCS
 from arcana.core.data.space import Clinical
@@ -137,7 +137,7 @@ class XnatCommand(ContainerCommand):
         cmd_args = []
         for inpt in self.inputs:
             replacement_key = f"[{inpt.field.upper()}_INPUT]"
-            if issubclass(inpt.datatype, FileGroup):
+            if issubclass(inpt.datatype, FileSet):
                 desc = f"Match resource [SCAN_TYPE]: {inpt.help_string} "
                 input_type = "string"
             else:
