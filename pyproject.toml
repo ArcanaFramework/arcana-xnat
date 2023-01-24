@@ -1,18 +1,17 @@
 [build-system]
-requires = ["flit_scm"]
-build-backend = "flit_scm:buildapi"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "arcana-xnat"
 description = "An extension of the Arcana framework to apply workflows and analyses on data stored within XNAT data repositories"
 readme = "README.rst"
-requires-python = ">=3.8"
+requires-python = ">=3.7"
 dependencies = [
+    "arcana >=0.8.6",
+    "fileformats >= 0.3.3",
+    "fileformats-medimage >= 0.2.1",
     "xnat >=0.4.3",
-    "fileformats_core @ git+https://github.com/ArcanaFramework/fileformats-core@develop",  # "fileformats-core >=0.1",
-    "fileformats_common @ git+https://github.com/ArcanaFramework/fileformats-common@develop",  # "fileformats-common >= 0.1.1",
-    "fileformats_medimage @ git+https://github.com/ArcanaFramework/fileformats-medimage@develop",  # "fileformats-medimage >= 0.1",
-    "arcana_core @ git+https://github.com/ArcanaFramework/arcana-core@develop",  # "arcana-core >=0.8.6",
 ]
 license = {file = "LICENSE"}
 authors = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
@@ -25,44 +24,60 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
-    # "black",
+    "black",
+    "codespell",
+    "flake8",
+    "flake8-pyproject",
     "pre-commit",
 ]
 doc = [
-    "packaging",
     "docutils>=0.10",
+    "furo>=2022.2.14.1",
     "mock>1.0",
+    "numpydoc>=0.6.0",
+    "packaging",
     "sphinx >=2.1.2",
     "sphinx-argparse>=0.2.0",
     "sphinx-click>=3.1",
-    "furo>=2022.2.14.1",
-    "numpydoc>=0.6.0",
 ]
 test = [
-    "pytest >= 4.4.0",
-    "pytest-cov",
-    "pytest-env",
-    "xnat4tests >=0.3.3",
-    "medimages4tests >=0.3",
     "arcana-bids >=0.1",
     "codecov",
+    "medimages4tests >=0.3",
+    "pytest>=5.4.3",
+    "pytest-cov>=2.12.1",
+    "pytest-env>=0.6.2",
+    "xnat4tests >=0.3.3",
 ]
 
-[tool.flit.module]
-name = "arcana.xnat"
+[project.urls]
+documentation = "https://arcana.readthedocs.io"
+repository = "https://github.com/ArcanaFramework/arcana-xnat.git"
 
-[tool.flit.sdist]
-exclude = [".gitignore"]
+[tool.hatch.version]
+source = "vcs"
 
-[tool.setuptools_scm]
-write_to = "arcana/xnat/_version.py"
+[tool.hatch.build.hooks.vcs]
+version-file = "arcana/xnat/_version.py"
+
+[tool.hatch.build]
+packages = [
+    "arcana",
+]
+exclude = [
+    "/tests",
+]
 
 [tool.black]
 line-length = 88
@@ -71,3 +86,12 @@ exclude = "_version.py"
 
 [tool.codespell]
 ignore-words = ".codespell-ignorewords"
+
+[tool.flake8]
+doctests = true
+per-file-ignores = [
+    "__init__.py:F401"
+]
+max-line-length = 88
+select = "C,E,F,W,B,B950"
+extend-ignore = ['E203', 'E501', 'E129', 'W503']
