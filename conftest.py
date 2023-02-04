@@ -15,7 +15,7 @@ from click.testing import CliRunner
 import xnat4tests
 from arcana.core.deploy.image.base import BaseImage
 from arcana.core.data import Clinical
-from fileformats.medimage import Nifti_Gzip_Bids, Nifti_Gzip, Dicom, Nifti_Bids
+from fileformats.medimage import NiftiGzX, NiftiGz, Dicom, NiftiX
 from fileformats.text import Plain as Text
 from fileformats.generic import Directory
 from arcana.xnat.data.api import (
@@ -114,8 +114,8 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 name="scan2",
                 resources=[
                     ResourceBlueprint(
-                        name="Nifti_Gzip_Bids",
-                        datatype=Nifti_Gzip_Bids,
+                        name="NiftiGzX",
+                        datatype=NiftiGzX,
                         filenames=["file.nii.gz", "file.json"],
                     )
                 ],
@@ -139,7 +139,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                         filenames=["file1.dcm", "file2.dcm", "file3.dcm"],
                     ),
                     ResourceBlueprint(
-                        "NIFTI", datatype=Nifti_Gzip, filenames=["file1.nii.gz"]
+                        "NIFTI", datatype=NiftiGz, filenames=["file1.nii.gz"]
                     ),
                     ResourceBlueprint("BIDS", datatype=None, filenames=["file1.json"]),
                     ResourceBlueprint(
@@ -158,7 +158,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
             DerivBlueprint(
                 name="deriv2",
                 row_frequency=Clinical.subject,
-                datatype=Nifti_Gzip_Bids,
+                datatype=NiftiGzX,
                 filenames=["file.nii.gz", "file.json"],
             ),
             DerivBlueprint(
@@ -201,7 +201,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
             DerivBlueprint(
                 name="deriv2",
                 row_frequency=Clinical.subject,
-                datatype=Nifti_Gzip_Bids,
+                datatype=NiftiGzX,
                 filenames=["file.nii.gz", "file.json"],
             ),
             DerivBlueprint(
@@ -436,7 +436,7 @@ def dummy_niftix(work_dir):
     with open(json_path, "w") as f:
         json.dump({"test": "json-file"}, f)
 
-    return Nifti_Bids.from_fspaths(nifti_path, json_path)
+    return NiftiX.from_fspaths(nifti_path, json_path)
 
 
 # For debugging in IDE's don't catch raised exceptions and let the IDE
@@ -516,21 +516,21 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "anat/T1w",
             },
-            "datatype": "fileformats.medimage:Nifti_Gzip_Bids",
+            "datatype": "fileformats.medimage:NiftiGzX",
             "help_string": "T1-weighted image",
         },
         "T2w": {
             "configuration": {
                 "path": "anat/T2w",
             },
-            "datatype": "fileformats.medimage:Nifti_Gzip_Bids",
+            "datatype": "fileformats.medimage:NiftiGzX",
             "help_string": "T2-weighted image",
         },
         "DWI": {
             "configuration": {
                 "path": "dwi/dwi",
             },
-            "datatype": "fileformats.medimage:Nifti_Gzip_Bids_Fslgrad",
+            "datatype": "fileformats.medimage:NiftiGzX_Fslgrad",
             "help_string": "DWI-weighted image",
         },
     }
@@ -596,9 +596,9 @@ echo 'file2' > $OUTPUTS_DIR/sub-${{SUBJ_ID}}_file2.txt
 def mock_bids_app_script():
     file_tests = ""
     for inpt_path, datatype in [
-        ("anat/T1w", Nifti_Gzip_Bids),
-        ("anat/T2w", Nifti_Gzip_Bids),
-        ("dwi/dwi", Nifti_Gzip_Bids),
+        ("anat/T1w", NiftiGzX),
+        ("anat/T2w", NiftiGzX),
+        ("dwi/dwi", NiftiGzX),
     ]:
         subdir, suffix = inpt_path.split("/")
         file_tests += f"""
