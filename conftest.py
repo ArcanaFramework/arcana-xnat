@@ -26,17 +26,6 @@ from arcana.xnat.data.api import (
 )
 from arcana.xnat.data.cs import XnatViaCS
 from arcana.core.data.store import DerivBlueprint
-# import medimages4tests.dummy.nifti
-
-# from arcana.xnat.utils.testing import (
-#     make_mutable_dataset,
-#     create_dataset_data_in_repo,
-#     make_project_id,
-#     access_dataset,
-# )
-# from arcana.core.utils.testing.data import save_dataset_definition as save_file_system_dataset
-
-# Set DEBUG logging for unittests
 
 
 PKG_DIR = Path(__file__).parent
@@ -464,7 +453,7 @@ def catch_cli_exceptions():
 @pytest.fixture(scope="session")
 def command_spec():
     return {
-        "task": "arcana.core.utils.testing.tasks:concatenate",
+        "task": "arcana.testing.analysis.tasks:concatenate",
         "inputs": {
             "first_file": {
                 "datatype": "fileformats.text:Plain",
