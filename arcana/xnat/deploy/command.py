@@ -209,7 +209,7 @@ class XnatCommand(ContainerCommand):
                     "as-a-child-of": "SESSION",
                     "type": "Resource",
                     "label": output.name,
-                    "format": output.datatype.class_name(),
+                    "format": output.datatype.mime_like,
                 }
             )
             cmd_args.append(f"--output {output.name} '{output.name}'")
