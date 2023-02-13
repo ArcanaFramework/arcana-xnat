@@ -13,6 +13,8 @@ import random
 import nibabel
 from click.testing import CliRunner
 import xnat4tests
+import medimages4tests.dummy.nifti
+import medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c
 from arcana.core.deploy.image.base import BaseImage
 from arcana.core.data import Clinical
 from fileformats.medimage import NiftiGzX, NiftiGz, Dicom, NiftiX
@@ -41,11 +43,6 @@ sch.setLevel(log_level)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 sch.setFormatter(formatter)
 logger.addHandler(sch)
-
-
-@pytest.fixture(scope="session")
-def nifti_sample_dir(pkg_dir):
-    return pkg_dir / "test-data" / "nifti"
 
 
 @pytest.fixture(scope="session")
@@ -271,15 +268,16 @@ MUTABLE_DATASETS = ["basic.api", "multi.api", "basic.cs", "multi.cs"]
 
 
 @pytest.fixture(params=GOOD_DATASETS, scope="session")
-def xnat_dataset(xnat_repository: Xnat, xnat_archive_dir: Path, run_prefix: str, request):
+def xnat_dataset(
+    xnat_repository: Xnat, xnat_archive_dir: Path, source_data: Path, run_prefix: str, request
+):
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
     project_id = run_prefix + dataset_id
     with xnat4tests.connect() as login:
         if project_id not in login.projects:
             xnat_repository.create_test_dataset_data(
-                dataset_id=project_id,
-                blueprint=blueprint
+                dataset_id=project_id, blueprint=blueprint, source_data=source_data
             )
     store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
     return store.access_test_dataset(
@@ -289,7 +287,9 @@ def xnat_dataset(xnat_repository: Xnat, xnat_archive_dir: Path, run_prefix: str,
 
 
 @pytest.fixture(params=MUTABLE_DATASETS, scope="function")
-def mutable_dataset(xnat_repository: Xnat, xnat_archive_dir: Path, run_prefix: str, request):
+def mutable_dataset(
+    xnat_repository: Xnat, xnat_archive_dir: Path, source_data: Path, run_prefix: str, request
+):
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
     project_id = (
@@ -303,6 +303,7 @@ def mutable_dataset(xnat_repository: Xnat, xnat_archive_dir: Path, run_prefix: s
     return store.make_test_dataset(
         blueprint=blueprint,
         dataset_id=project_id,
+        source_data=source_data,
     )
 
 
@@ -655,77 +656,391 @@ ENTRYPOINT ["/launch.sh"]"""
     return tag_name
 
 
-# proj_name = (run_prefix if run_prefix else "") + dataset_id + test_suffix
-
-# def make_mutable_dataset(
-#     dataset_id: str,
-#     blueprint: TestDatasetBlueprint,
-#     xnat_repository: Xnat,
-#     xnat_archive_dir: Path,
-#     access_method: str,
-#     dataset_name: str = None,
-#     source_data: Path = None,
-# ):
-#     """Create a dataset (project) in the test XNAT repository"""
-#     test_suffix = "mutable" + access_method + str(hex(random.getrandbits(16)))[2:]
-#     run_prefix = xnat_repository.__annotations__["run_prefix"]
-#     # Need to create a new dataset per function so it can be safely modified
-#     # by the test without messing up other tests.
-#     create_dataset_data_in_repo(
-#         dataset_name=dataset_id,
-#         blueprint=blueprint,
-#         run_prefix=run_prefix,
-#         test_suffix=test_suffix,
-#         source_data=source_data,
-#     )
-#     return access_dataset(
-#         xnat_repository=xnat_repository,
-#         dataset_id=dataset_id,
-#         dataset_name=dataset_name,
-#         blueprint=blueprint,
-#         access_method=access_method,
-#         xnat_archive_dir=xnat_archive_dir,
-#         test_suffix=test_suffix,
-#     )
+@pytest.fixture(scope="session")
+def source_data(work_dir):
+    source_data = work_dir / "source-data"
+    # Create NIFTI data
+    nifti_dir = source_data / "nifti"
+    for fname, fdata in NIFTI_DATA_SPEC.items():
+        fpath = nifti_dir.joinpath(*fname.split("/"))
+        if fname.endswith(".nii.gz"):
+            medimages4tests.dummy.nifti.get_image(out_file=fpath, compressed=True)
+        elif fname.endswith(".json"):
+            with open(fpath, "w") as f:
+                json.dump(fdata, f)
+        else:
+            with open(fpath, "w") as f:
+                f.write(fdata)
+    # Create DICOM data
+    dicom_dir = source_data / "dicom"
+    medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c.get_image(
+        out_file=dicom_dir / "fmap"
+    )
+    return source_data
 
 
-# def access_dataset(
-#     xnat_repository: Xnat,
-#     dataset_id: str,
-#     blueprint: TestXnatDatasetBlueprint,
-#     access_method: str,
-#     xnat_archive_dir: Path,
-#     dataset_name: str = None,
-#     test_suffix: str = "",
-# ):
-
-#     run_prefix = xnat_repository.__annotations__["run_prefix"]
-#     proj_name = make_project_id(dataset_id, run_prefix, test_suffix)
-#     if access_method == "cs":
-#         # Create a new repository access object that accesses data directly
-#         # via the XNAT archive directory, like
-#         proj_dir = xnat_archive_dir / proj_name / "arc001"
-#         # xnat_repository = XnatViaCS(
-#         #     server=xnat_repository.server,
-#         #     user=xnat_repository.user,
-#         #     password=xnat_repository.password,
-#         #     cache_dir=xnat_repository.cache_dir,
-#         #     row_frequency=Clinical.dataset,
-#         #     input_mount=proj_dir,
-#         #     output_mount=Path(mkdtemp()),
-#         # )
-#     elif access_method != "api":
-#         assert False
-
-#     dataset = xnat_repository.new_dataset(
-#         proj_name, id_inference=blueprint.id_inference, name=dataset_name
-#     )
-#     # Stash the args used to create the dataset in attributes so they can be
-#     # used by tests
-#     dataset.__annotations__["blueprint"] = blueprint
-#     dataset.__annotations__["access_method"] = access_method
-#     return dataset
-
-
-# def make_project_id(dataset_name: str, run_prefix: str = None, test_suffix: str = ""):
-#     return (run_prefix if run_prefix else "") + dataset_name + test_suffix
+NIFTI_DATA_SPEC = {
+    "anat/T1w.nii.gz": None,
+    "anat/T1w.json": {
+        "Modality": "MR",
+        "MagneticFieldStrength": 3,
+        "ImagingFrequency": 123.252,
+        "Manufacturer": "Siemens",
+        "ManufacturersModelName": "Skyra",
+        "InstitutionName": "Monash Biomedical Imaging",
+        "InstitutionalDepartmentName": "Department",
+        "InstitutionAddress": "Blackburn Road 770,Clayton,Victoria,AU,3800",
+        "DeviceSerialNumber": "45193",
+        "StationName": "AWP45193",
+        "BodyPartExamined": "BRAIN",
+        "PatientPosition": "HFS",
+        "ProcedureStepDescription": "MR Scan",
+        "SoftwareVersions": "syngo MR D13C",
+        "MRAcquisitionType": "3D",
+        "SeriesDescription": "t1_mprage_sag_p2_iso_1_ADNI",
+        "ProtocolName": "t1_mprage_sag_p2_iso_1_ADNI",
+        "ScanningSequence": "GR\\IR",
+        "SequenceVariant": "SK\\SP\\MP",
+        "ScanOptions": "IR",
+        "SequenceName": "*tfl3d1_16ns",
+        "ImageType": ["ORIGINAL", "PRIMARY", "M", "ND", "NORM"],
+        "SeriesNumber": 4,
+        "AcquisitionTime": "15:19:35.435000",
+        "AcquisitionNumber": 1,
+        "SliceThickness": 1,
+        "SAR": 0.0956743,
+        "EchoTime": 0.00207,
+        "RepetitionTime": 2.3,
+        "InversionTime": 0.9,
+        "FlipAngle": 9,
+        "PartialFourier": 1,
+        "BaseResolution": 256,
+        "ShimSetting": [-4103, 15460, -15533, -6, 142, -137, -58, 61],
+        "TxRefAmp": 374.478,
+        "PhaseResolution": 1,
+        "ReceiveCoilName": "Head_32",
+        "ReceiveCoilActiveElements": "HEA;HEP",
+        "PulseSequenceDetails": "%SiemensSeq%\\tfl",
+        "RefLinesPE": 32,
+        "ConsistencyInfo": "N4_VD13C_LATEST_20121124",
+        "PercentPhaseFOV": 93.75,
+        "PercentSampling": 100,
+        "PhaseEncodingSteps": 239,
+        "AcquisitionMatrixPE": 240,
+        "ReconMatrixPE": 240,
+        "ParallelReductionFactorInPlane": 2,
+        "PixelBandwidth": 230,
+        "DwellTime": 8.5e-06,
+        "ImageOrientationPatientDICOM": [
+            -0.012217,
+            0.999925,
+            4.08204e-08,
+            -0.029664,
+            -0.00036239,
+            -0.99956,
+        ],
+        "InPlanePhaseEncodingDirectionDICOM": "ROW",
+        "ConversionSoftware": "dcm2niix",
+        "ConversionSoftwareVersion": "v1.0.20201102",
+    },
+    "anat/T2w.nii.gz": None,
+    "anat/T2w.json": {
+        "Modality": "MR",
+        "MagneticFieldStrength": 3,
+        "ImagingFrequency": 123.252,
+        "Manufacturer": "Siemens",
+        "ManufacturersModelName": "Skyra",
+        "InstitutionName": "Monash Biomedical Imaging",
+        "InstitutionalDepartmentName": "Department",
+        "InstitutionAddress": "Blackburn Road 770,Clayton,Victoria,AU,3800",
+        "DeviceSerialNumber": "45193",
+        "StationName": "AWP45193",
+        "BodyPartExamined": "BRAIN",
+        "PatientPosition": "HFS",
+        "ProcedureStepDescription": "MR Scan",
+        "SoftwareVersions": "syngo MR D13C",
+        "MRAcquisitionType": "3D",
+        "SeriesDescription": "t2_spc_da-fl_sag_p2_iso_1.0",
+        "ProtocolName": "t2_spc_da-fl_sag_p2_iso_1.0",
+        "ScanningSequence": "SE\\IR",
+        "SequenceVariant": "SK\\SP\\MP",
+        "ScanOptions": "IR\\PFP",
+        "SequenceName": "*spcir_284ns",
+        "ImageType": ["ORIGINAL", "PRIMARY", "M", "ND", "NORM"],
+        "SeriesNumber": 5,
+        "AcquisitionTime": "15:25:1.425000",
+        "AcquisitionNumber": 1,
+        "SliceThickness": 1,
+        "SAR": 0.184773,
+        "EchoTime": 0.397,
+        "RepetitionTime": 5,
+        "InversionTime": 1.8,
+        "FlipAngle": 120,
+        "PartialFourier": 1,
+        "BaseResolution": 256,
+        "ShimSetting": [-4122, 15404, -15151, 308, 209, -107, 427, 150],
+        "TxRefAmp": 374.478,
+        "PhaseResolution": 1,
+        "ReceiveCoilName": "Head_32",
+        "ReceiveCoilActiveElements": "HEA;HEP",
+        "PulseSequenceDetails": "%SiemensSeq%\\tse_vfl",
+        "RefLinesPE": 32,
+        "ConsistencyInfo": "N4_VD13C_LATEST_20121124",
+        "PercentPhaseFOV": 93.75,
+        "PercentSampling": 100,
+        "EchoTrainLength": 258,
+        "PhaseEncodingSteps": 199,
+        "AcquisitionMatrixPE": 240,
+        "ReconMatrixPE": 240,
+        "ParallelReductionFactorInPlane": 2,
+        "PixelBandwidth": 780,
+        "DwellTime": 2.5e-06,
+        "PhaseEncodingDirection": "i",
+        "ImageOrientationPatientDICOM": [
+            -0.012217,
+            0.999925,
+            4.08204e-08,
+            -0.029664,
+            -0.00036239,
+            -0.99956,
+        ],
+        "InPlanePhaseEncodingDirectionDICOM": "ROW",
+        "ConversionSoftware": "dcm2niix",
+        "ConversionSoftwareVersion": "v1.0.20201102",
+    },
+    "anat/T2w_mask.nii.gz": None,
+    "dwi/dwi.nii.gz": None,
+    "dwi/dwi.json": {
+        "Modality": "MR",
+        "MagneticFieldStrength": 3,
+        "ImagingFrequency": 123.252,
+        "Manufacturer": "Siemens",
+        "ManufacturersModelName": "Skyra",
+        "InstitutionName": "Monash Biomedical Imaging",
+        "InstitutionalDepartmentName": "Department",
+        "InstitutionAddress": "Blackburn Road 770,Clayton,Victoria,AU,3800",
+        "DeviceSerialNumber": "45193",
+        "StationName": "AWP45193",
+        "BodyPartExamined": "BRAIN",
+        "PatientPosition": "HFS",
+        "ProcedureStepDescription": "MR Scan",
+        "SoftwareVersions": "syngo MR D13C",
+        "MRAcquisitionType": "2D",
+        "SeriesDescription": "R-L MRtrix 60 directions interleaved B0 ep2d_diff_p2",
+        "ProtocolName": "R-L MRtrix 60 directions interleaved B0 ep2d_diff_p2",
+        "ScanningSequence": "EP",
+        "SequenceVariant": "SK\\SP",
+        "ScanOptions": "PFP\\FS",
+        "SequenceName": "*ep_b0",
+        "ImageType": ["ORIGINAL", "PRIMARY", "DIFFUSION", "NONE", "ND", "NORM"],
+        "SeriesNumber": 13,
+        "AcquisitionTime": "15:40:9.337500",
+        "AcquisitionNumber": 1,
+        "SliceThickness": 2.5,
+        "SpacingBetweenSlices": 2.5,
+        "SAR": 0.321094,
+        "EchoTime": 0.11,
+        "RepetitionTime": 8.8,
+        "FlipAngle": 90,
+        "PartialFourier": 0.75,
+        "BaseResolution": 96,
+        "ShimSetting": [-4121, 15424, -15122, 361, 212, 42, 373, 160],
+        "DiffusionScheme": "Bipolar",
+        "TxRefAmp": 374.478,
+        "PhaseResolution": 1,
+        "ReceiveCoilName": "Head_32",
+        "ReceiveCoilActiveElements": "HEA;HEP",
+        "PulseSequenceDetails": "%SiemensSeq%\\ep2d_diff",
+        "RefLinesPE": 24,
+        "ConsistencyInfo": "N4_VD13C_LATEST_20121124",
+        "PercentPhaseFOV": 100,
+        "PercentSampling": 100,
+        "EchoTrainLength": 36,
+        "PhaseEncodingSteps": 72,
+        "AcquisitionMatrixPE": 96,
+        "ReconMatrixPE": 96,
+        "BandwidthPerPixelPhaseEncode": 34.153,
+        "ParallelReductionFactorInPlane": 2,
+        "EffectiveEchoSpacing": 0.000305,
+        "DerivedVendorReportedEchoSpacing": 0.00061,
+        "TotalReadoutTime": 0.028975,
+        "PixelBandwidth": 2365,
+        "DwellTime": 2.2e-06,
+        "PhaseEncodingDirection": "i",
+        "SliceTiming": [
+            4.39,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+            -0.001,
+        ],
+        "ImageOrientationPatientDICOM": [1, 0, 0, 0, 0.995884, -0.0906326],
+        "InPlanePhaseEncodingDirectionDICOM": "ROW",
+        "ConversionSoftware": "dcm2niix",
+        "ConversionSoftwareVersion": "v1.0.20201102",
+    },
+    "dwi/dwi.bvec": """0 0.00201544 -0.999916 0.940802 -0.267573 -0.341263 -0.304651 -0.798158 0.911671 -0.332582 0.129953 0 -0.0184011 -0.949467 0.478181 -0.680372 0.0631794 0.905646 0.538287 -0.94236 -0.622045 0.418813 0 0.283531 0.707108 -0.532643 0.574192 0.118616 0.561832 0.167948 -0.795972 0.786687 -0.208195 0 0.600265 -0.837063 -0.16334 -0.0164679 -0.516504 0.318434 0.552268 -0.388239 0.740417 -0.342968 0 0.735306 -0.59768 -0.878689 -0.79987 0.48572 -0.375167 0.323404 0.0328518 -0.221148 -0.0564251 0 0.282136 -0.0542923 0.654414 0.355357 0.800053 0.27937 -0.948506 0.572595 0.715205 -0.819106 0
+0 -0.0906324 0.00150768 0.103725 0.566424 -0.932798 0.263583 -0.359376 0.383683 -0.0678173 -0.963974 0 -0.997849 -0.139095 0.789375 -0.642742 0.546254 -0.224242 -0.806156 0.331059 -0.247675 -0.512537 0 -0.823189 -0.706887 -0.556777 -0.156167 -0.667398 0.535909 -0.927327 0.292595 0.308536 -0.955598 0 0.176478 0.505578 -0.903742 -0.415211 -0.84375 -0.947182 -0.402461 -0.80222 0.671615 -0.389569 0 0.581373 0.080015 -0.445495 0.529249 -0.844261 0.75936 0.0700211 0.241606 -0.666627 -0.865575 0 -0.260901 0.780566 -0.589582 0.390048 -0.0200536 0.712645 0.193044 -0.657209 -0.372654 -0.0372004 0
+0 -0.995882 0.0128958 -0.322697 -0.779467 0.115876 -0.915266 -0.483521 -0.147117 -0.940633 -0.232091 0 0.0629249 -0.281363 -0.385005 -0.352104 -0.835233 -0.35989 0.245682 0.0485524 -0.742777 -0.749601 0 -0.491905 -0.0175686 -0.63741 -0.803688 -0.735194 -0.630195 0.334452 -0.529921 -0.534723 -0.208535 0 -0.780088 -0.209086 0.395689 -0.909576 -0.145981 0.0380189 0.730086 -0.453557 -0.0267631 -0.854757 0 -0.348326 -0.797732 -0.171583 0.283026 -0.226493 -0.531623 -0.943667 -0.969818 -0.71183 -0.49759 0 -0.923217 -0.622711 0.473429 -0.849461 -0.599594 -0.643498 -0.251139 -0.490114 -0.59128 -0.572434 0""",
+    "dwi/dwi.bval": "0 3000 3000 3000 3000 3000 3000 3000 3000 3000 3000 0 3000 3000 3000 3000 3000 3000 3000 3000 3000 3000 0 3000 3000 3000 3000 3000 3000 3000 3000 3000 3000 0 3000 3000 3000 3000 3000 3000 3000 3000 3000 3000 0 3000 3000 3000 3000 3000 3000 3000 3000 3000 3000 0 3000 3000 3000 3000 3000 3000 3000 3000 3000 3000 0",
+    "func/bold.nii.gz": None,
+    "func/bold.json": {
+        "Modality": "MR",
+        "MagneticFieldStrength": 3,
+        "ImagingFrequency": 123.252,
+        "Manufacturer": "Siemens",
+        "ManufacturersModelName": "Skyra",
+        "InstitutionName": "Monash Biomedical Imaging",
+        "InstitutionAddress": "Blackburn Road 770,Clayton,Victoria,AU,3800",
+        "DeviceSerialNumber": "45193",
+        "StationName": "AWP45193",
+        "BodyPartExamined": "BRAIN",
+        "PatientPosition": "HFS",
+        "ProcedureStepDescription": "MR Scan",
+        "SoftwareVersions": "syngo MR D13C",
+        "MRAcquisitionType": "2D",
+        "SeriesDescription": "REST_cmrr_mbep2d_bold_mat64_32Ch",
+        "ProtocolName": "REST_cmrr_mbep2d_bold_mat64_32Ch",
+        "ScanningSequence": "EP",
+        "SequenceVariant": "SK\\SS",
+        "ScanOptions": "FS",
+        "ImageType": ["ORIGINAL", "PRIMARY", "M", "MB", "ND", "NORM", "MOSAIC"],
+        "SeriesNumber": 3,
+        "AcquisitionTime": "15:13:52.795000",
+        "AcquisitionNumber": 1,
+        "SliceThickness": 3,
+        "SpacingBetweenSlices": 3,
+        "EchoTime": 0.021,
+        "RepetitionTime": 0.801,
+        "FlipAngle": 50,
+        "ReceiveCoilActiveElements": "HEA;HEP",
+        "CoilString": "Head_32",
+        "PartialFourier": 0.96875,
+        "PercentPhaseFOV": 100,
+        "PercentSampling": 100,
+        "EchoTrainLength": 31,
+        "AcquisitionMatrixPE": 64,
+        "ReconMatrixPE": 64,
+        "BandwidthPerPixelPhaseEncode": 41.118,
+        "ParallelReductionFactorInPlane": 2,
+        "EffectiveEchoSpacing": 0.000380004,
+        "DerivedVendorReportedEchoSpacing": 0.000760008,
+        "TotalReadoutTime": 0.0239402,
+        "PixelBandwidth": 1475,
+        "PhaseEncodingDirection": "i",
+        "SliceTiming": [
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+            10.4125,
+        ],
+        "ImageOrientationPatientDICOM": [
+            1,
+            -2.03527e-10,
+            2.5383e-11,
+            2.05103e-10,
+            0.992315,
+            -0.12374,
+        ],
+        "InPlanePhaseEncodingDirectionDICOM": "ROW",
+        "ConversionSoftware": "dcm2niix",
+        "ConversionSoftwareVersion": "v1.0.20201102",
+    },
+    "func/bold_ref": None,
+}
