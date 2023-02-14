@@ -452,7 +452,6 @@ def dummy_niftix(work_dir):
     return NiftiX.from_fspaths(nifti_path, json_path)
 
 
-
 @pytest.fixture(scope="session")
 def command_spec():
     return {
@@ -684,6 +683,11 @@ def source_data():
     # Create png data
     get_remote_file("images/chelsea.png", directory=source_data)
     return source_data
+
+
+@pytest.fixture(scope="session")
+def nifti_sample_dir(source_data):
+    return source_data / "nifti"
 
 
 NIFTI_DATA_SPEC = {
