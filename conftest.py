@@ -168,7 +168,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 name="deriv2",
                 row_frequency=Clinical.subject,
                 datatype=NiftiGzX,
-                filenames=["file.nii.gz", "file.json"],
+                filenames=["nifti/anat/T1w.nii.gz", "nifti/anat/T1w.json"],
             ),
             DerivBlueprint(
                 name="deriv3",
@@ -211,7 +211,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 name="deriv2",
                 row_frequency=Clinical.subject,
                 datatype=NiftiGzX,
-                filenames=["file.nii.gz", "file.json"],
+                filenames=["nifti/anat/T2w.nii.gz", "nifti/anat/T2w.json"],
             ),
             DerivBlueprint(
                 name="deriv3",
