@@ -188,7 +188,7 @@ class XnatCommand(ContainerCommand):
         cmd_args = []
         for output in self.outputs:
             out_fname = output.name + (
-                "." + output.datatype.ext if output.datatype.ext else ""
+                output.datatype.ext if output.datatype.ext else ""
             )
             # Set the path to the
             cmd_json["outputs"].append(
