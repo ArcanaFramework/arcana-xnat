@@ -28,7 +28,7 @@ from arcana.xnat.data.testing import (
     ScanBlueprint,
 )
 from arcana.xnat.data.cs import XnatViaCS
-from arcana.core.data.store import DerivBlueprint
+from arcana.core.data.testing import DerivBlueprint
 
 
 # For debugging in IDE's don't catch raised exceptions and let the IDE
