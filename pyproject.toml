@@ -42,23 +42,24 @@ dev = [
     "pre-commit",
 ]
 doc = [
-    "docutils>=0.10",
-    "furo>=2022.2.14.1",
-    "mock>1.0",
-    "numpydoc>=0.6.0",
+    "docutils >=0.10",
+    "furo >=2022.2.14.1",
+    "mock >=1.0",
+    "numpydoc >=0.6.0",
     "packaging",
     "sphinx >=2.1.2",
-    "sphinx-argparse>=0.2.0",
-    "sphinx-click>=3.1",
+    "sphinx-argparse >=0.2.0",
+    "sphinx-click >=3.1",
 ]
 test = [
     "arcana-bids >=0.1",
     "codecov",
     "medimages4tests >=0.3",
-    "pytest>=5.4.3",
-    "pytest-cov>=2.12.1",
-    "pytest-env>=0.6.2",
+    "pytest >=5.4.3",
+    "pytest-cov >=2.12.1",
+    "pytest-env >=0.6.2",
     "xnat4tests >=0.3.3",
+    "imageio >=2.25.0"
 ]
 
 [project.urls]

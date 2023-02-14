@@ -12,6 +12,7 @@ import docker
 import random
 import nibabel
 from click.testing import CliRunner
+from imageio.core.fetching import get_remote_file
 import xnat4tests
 import medimages4tests.dummy.nifti
 import medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c
@@ -20,14 +21,36 @@ from arcana.core.data import Clinical
 from fileformats.medimage import NiftiGzX, NiftiGz, Dicom, NiftiX
 from fileformats.text import Plain as Text
 from fileformats.generic import Directory
-from arcana.xnat.data.api import (
-    Xnat,
+from arcana.xnat.data.api import Xnat
+from arcana.xnat.data.testing import (
     TestXnatDatasetBlueprint,
     ResourceBlueprint,
     ScanBlueprint,
 )
 from arcana.xnat.data.cs import XnatViaCS
 from arcana.core.data.store import DerivBlueprint
+
+
+# For debugging in IDE's don't catch raised exceptions and let the IDE
+# break at it
+if os.getenv("_PYTEST_RAISE", "0") != "0":
+
+    @pytest.hookimpl(tryfirst=True)
+    def pytest_exception_interact(call):
+        raise call.excinfo.value
+
+    @pytest.hookimpl(tryfirst=True)
+    def pytest_internalerror(excinfo):
+        raise excinfo.value
+
+    CATCH_CLI_EXCEPTIONS = False
+else:
+    CATCH_CLI_EXCEPTIONS = True
+
+
+@pytest.fixture
+def catch_cli_exceptions():
+    return CATCH_CLI_EXCEPTIONS
 
 
 PKG_DIR = Path(__file__).parent
@@ -102,7 +125,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                     ResourceBlueprint(
                         name="NiftiGzX",
                         datatype=NiftiGzX,
-                        filenames=["file.nii.gz", "file.json"],
+                        filenames=["nifti/anat/T1w.nii.gz", "nifti/anat/T1w.json"],
                     )
                 ],
             ),
@@ -122,14 +145,14 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                     ResourceBlueprint(
                         name="DICOM",
                         datatype=Dicom,
-                        filenames=["file1.dcm", "file2.dcm", "file3.dcm"],
+                        filenames=["dicom/fmap/1.dcm", "dicom/fmap/2.dcm", "dicom/fmap/3.dcm"],
                     ),
                     ResourceBlueprint(
-                        "NIFTI", datatype=NiftiGz, filenames=["file1.nii.gz"]
+                        "NIFTI", datatype=NiftiGz, filenames=["nifti/anat/T2w.nii.gz"]
                     ),
-                    ResourceBlueprint("BIDS", datatype=None, filenames=["file1.json"]),
+                    ResourceBlueprint("BIDS", datatype=None, filenames=["nifti/anat/T2w.json"]),
                     ResourceBlueprint(
-                        "SNAPSHOT", datatype=None, filenames=["file1.png"]
+                        "SNAPSHOT", datatype=None, filenames=["images/chelsea.png"]
                     ),
                 ],
             ),
@@ -429,27 +452,6 @@ def dummy_niftix(work_dir):
     return NiftiX.from_fspaths(nifti_path, json_path)
 
 
-# For debugging in IDE's don't catch raised exceptions and let the IDE
-# break at it
-if os.getenv("_PYTEST_RAISE", "0") != "0":
-
-    @pytest.hookimpl(tryfirst=True)
-    def pytest_exception_interact(call):
-        raise call.excinfo.value
-
-    @pytest.hookimpl(tryfirst=True)
-    def pytest_internalerror(excinfo):
-        raise excinfo.value
-
-    CATCH_CLI_EXCEPTIONS = False
-else:
-    CATCH_CLI_EXCEPTIONS = True
-
-
-@pytest.fixture
-def catch_cli_exceptions():
-    return CATCH_CLI_EXCEPTIONS
-
 
 @pytest.fixture(scope="session")
 def command_spec():
@@ -657,14 +659,16 @@ ENTRYPOINT ["/launch.sh"]"""
 
 
 @pytest.fixture(scope="session")
-def source_data(work_dir):
-    source_data = work_dir / "source-data"
+def source_data():
+    source_data = Path(tempfile.mkdtemp())
     # Create NIFTI data
     nifti_dir = source_data / "nifti"
+    nifti_dir.mkdir()
     for fname, fdata in NIFTI_DATA_SPEC.items():
         fpath = nifti_dir.joinpath(*fname.split("/"))
-        if fname.endswith(".nii.gz"):
-            medimages4tests.dummy.nifti.get_image(out_file=fpath, compressed=True)
+        fpath.parent.mkdir(exist_ok=True, parents=True)
+        if fname.endswith(".nii.gz") or fname.endswith(".nii"):
+            medimages4tests.dummy.nifti.get_image(out_file=fpath)
         elif fname.endswith(".json"):
             with open(fpath, "w") as f:
                 json.dump(fdata, f)
@@ -673,9 +677,12 @@ def source_data(work_dir):
                 f.write(fdata)
     # Create DICOM data
     dicom_dir = source_data / "dicom"
+    dicom_dir.mkdir()
     medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c.get_image(
-        out_file=dicom_dir / "fmap"
+        out_dir=dicom_dir / "fmap"
     )
+    # Create png data
+    get_remote_file("images/chelsea.png", directory=source_data)
     return source_data
 
 
@@ -1042,5 +1049,5 @@ NIFTI_DATA_SPEC = {
         "ConversionSoftware": "dcm2niix",
         "ConversionSoftwareVersion": "v1.0.20201102",
     },
-    "func/bold_ref": None,
+    "func/bold_ref.nii.gz": None,
 }
