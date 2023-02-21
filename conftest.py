@@ -455,7 +455,7 @@ def dummy_niftix(work_dir):
 @pytest.fixture(scope="session")
 def command_spec():
     return {
-        "task": "arcana.testing.analysis.tasks:concatenate",
+        "task": "arcana.testing.tasks:concatenate",
         "inputs": {
             "first_file": {
                 "datatype": "fileformats.text:Plain",
