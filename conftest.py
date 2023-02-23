@@ -29,7 +29,9 @@ from arcana.xnat.data.testing import (
 )
 from arcana.xnat.data.cs import XnatViaCS
 from arcana.core.data.testing import DerivBlueprint
+from pydra import set_input_validator
 
+set_input_validator(True)
 
 # For debugging in IDE's don't catch raised exceptions and let the IDE
 # break at it
