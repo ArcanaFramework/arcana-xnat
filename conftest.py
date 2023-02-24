@@ -523,7 +523,7 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "dwi/dwi",
             },
-            "datatype": "fileformats.medimage:NiftiGzX_Fslgrad",
+            "datatype": "fileformats.medimage:NiftiGzXBvec",
             "help_string": "DWI-weighted image",
         },
     }
