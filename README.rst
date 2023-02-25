@@ -6,13 +6,13 @@ Arcana Extension - XNAT
    :target: https://codecov.io/gh/arcanaframework/arcana-xnat
 .. image:: https://img.shields.io/pypi/pyversions/arcana-xnat.svg
    :target: https://pypi.python.org/pypi/arcana-xnat/
-   :alt: Supported Python versions
+   :alt: Python versions
 .. image:: https://img.shields.io/pypi/v/arcana-xnat.svg
    :target: https://pypi.python.org/pypi/arcana-xnat/
-   :alt: Latest Version
-.. image:: https://readthedocs.org/projects/arcana/badge/?version=latest
-  :target: http://arcana.readthedocs.io/en/latest/?badge=latest
-  :alt: Documentation Status
+   :alt: Latest Version  
+.. image:: https://github.com/ArcanaFramework/arcana/actions/workflows/docs.yml/badge.svg
+   :target: http://arcana.readthedocs.io/en/latest/?badge=latest
+   :alt: Docs
 
 
 An extension of the Arcana framework to enable users to apply workflows and analyses on
