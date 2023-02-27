@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing as ty
 import re
 import attrs
-from fileformats.core import FileGroup
+from fileformats.core import FileSet
 from arcana.core.deploy.command.base import ContainerCommand
 from arcana.xnat.data import XnatViaCS
 from arcana.core.data.space import Clinical
@@ -137,7 +137,7 @@ class XnatCommand(ContainerCommand):
         cmd_args = []
         for inpt in self.inputs:
             replacement_key = f"[{inpt.field.upper()}_INPUT]"
-            if issubclass(inpt.datatype, FileGroup):
+            if issubclass(inpt.datatype, FileSet):
                 desc = f"Match resource [SCAN_TYPE]: {inpt.help_string} "
                 input_type = "string"
             else:
@@ -188,7 +188,7 @@ class XnatCommand(ContainerCommand):
         cmd_args = []
         for output in self.outputs:
             out_fname = output.name + (
-                "." + output.datatype.ext if output.datatype.ext else ""
+                output.datatype.ext if output.datatype.ext else ""
             )
             # Set the path to the
             cmd_json["outputs"].append(
@@ -209,7 +209,7 @@ class XnatCommand(ContainerCommand):
                     "as-a-child-of": "SESSION",
                     "type": "Resource",
                     "label": output.name,
-                    "format": output.datatype.class_name(),
+                    "format": output.datatype.mime_like,
                 }
             )
             cmd_args.append(f"--output {output.name} '{output.name}'")
