@@ -137,7 +137,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                     ResourceBlueprint(
                         name="Directory",
                         datatype=Directory,
-                        filenames=["doubledir", "dir", "file.dat"],
+                        filenames=["doubledir"],
                     )
                 ],
             ),
