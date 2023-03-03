@@ -18,7 +18,7 @@ import medimages4tests.dummy.nifti
 import medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c
 from arcana.core.deploy.image.base import BaseImage
 from arcana.core.data import Clinical
-from fileformats.medimage import NiftiGzX, NiftiGz, Dicom, NiftiX
+from fileformats.medimage import NiftiGzX, NiftiGz, DicomSet, NiftiX
 from fileformats.text import Plain as Text
 from fileformats.generic import Directory
 from arcana.xnat.data.api import Xnat
@@ -146,7 +146,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 resources=[
                     ResourceBlueprint(
                         name="DICOM",
-                        datatype=Dicom,
+                        datatype=DicomSet,
                         filenames=["dicom/fmap/1.dcm", "dicom/fmap/2.dcm", "dicom/fmap/3.dcm"],
                     ),
                     ResourceBlueprint(
