@@ -2,6 +2,7 @@ import os
 import logging
 import sys
 from tempfile import mkdtemp
+from unittest.mock import patch
 import json
 import tempfile
 from datetime import datetime
@@ -101,6 +102,12 @@ def build_cache_dir():
 def pkg_dir():
     return PKG_DIR
 
+
+@pytest.fixture
+def arcana_home(work_dir):
+    arcana_home = work_dir / "arcana-home"
+    with patch.dict(os.environ, {"ARCANA_HOME": str(arcana_home)}):
+        yield arcana_home
 
 # -----------------------
 # Test dataset structures
