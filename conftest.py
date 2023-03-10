@@ -23,13 +23,13 @@ from fileformats.medimage import NiftiGzX, NiftiGz, DicomSet, NiftiX
 from fileformats.text import Plain as Text
 from fileformats.generic import Directory
 from arcana.xnat.data.api import Xnat
-from arcana.xnat.data.testing import (
+from arcana.xnat.utils.testing import (
     TestXnatDatasetBlueprint,
     ResourceBlueprint,
     ScanBlueprint,
 )
 from arcana.xnat.data.cs import XnatViaCS
-from arcana.core.data.testing import DerivBlueprint
+from arcana.testing.data.blueprint import DerivBlueprint
 from pydra import set_input_validator
 
 set_input_validator(True)
@@ -308,13 +308,13 @@ def xnat_dataset(
     project_id = run_prefix + dataset_id
     with xnat4tests.connect() as login:
         if project_id not in login.projects:
-            xnat_repository.create_test_dataset_data(
-                dataset_id=project_id, blueprint=blueprint, source_data=source_data
+            blueprint.create_dataset(
+                dataset_id=project_id, store=xnat_repository, source_data=source_data
             )
     store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
-    return store.access_test_dataset(
+    return blueprint.access_dataset(
         dataset_id=project_id,
-        blueprint=blueprint,
+        store=store,
     )
 
 
@@ -332,8 +332,8 @@ def mutable_dataset(
         + str(hex(random.getrandbits(16)))[2:]
     )
     store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
-    return store.make_test_dataset(
-        blueprint=blueprint,
+    return blueprint.make_dataset(
+        store=store,
         dataset_id=project_id,
         source_data=source_data,
     )
