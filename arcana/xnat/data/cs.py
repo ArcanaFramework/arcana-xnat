@@ -9,7 +9,6 @@ from pathlib import Path
 import shutil
 import attrs
 from fileformats.core.base import FileSet
-from fileformats.generic import BaseDirectory
 from arcana.core.data import Clinical
 from arcana.core.data.space import DataSpace
 from arcana.core.data.row import DataRow
@@ -92,13 +91,10 @@ class XnatViaCS(Xnat):
             entry.row.frequency,
             entry.row.id,
         )
-        if entry.in_derivative_namespace:
+        if entry.is_derivative:
             # entry is in input mount
-            stem_path = self.entry_path(entry)
-            if datatype.is_subtype_of(BaseDirectory):
-                fspaths = [stem_path]
-            else:
-                fspaths = list(stem_path.iterdir())
+            stem_path = self.entry_fspath(entry)
+            fspaths = list(stem_path.iterdir())
         else:
             path = re.match(
                 r"/data/(?:archive/)?projects/[a-zA-Z0-9\-_]+/"
@@ -110,30 +106,24 @@ class XnatViaCS(Xnat):
                 path = path.replace("scans", "SCANS").replace("resources/", "")
             path = path.replace("resources", "RESOURCES")
             resource_path = input_mount / path
-            if datatype.is_subtype_of(BaseDirectory):
-                # Link files from resource dir into temp dir to avoid catalog XML
-                dir_path = self.cache_path(entry.uri)
-                try:
-                    shutil.rmtree(dir_path)
-                except FileNotFoundError:
-                    pass
-                os.makedirs(dir_path, exist_ok=True)
-                for item in resource_path.iterdir():
-                    if not item.name.endswith("_catalog.xml"):
-                        os.symlink(item, dir_path / item.name)
-                fspaths = [dir_path]
-            else:
-                fspaths = list(resource_path.iterdir())
+            fspaths = list(resource_path.iterdir())
         return datatype(fspaths)
 
     def put_fileset(self, fileset: FileSet, entry: DataEntry) -> FileSet:
-        if not entry.in_derivative_namespace:
+        if not entry.is_derivative:
             super().put_fileset(fileset, entry)  # Fallback to API access
-        entry_path = self.entry_path(entry)
-        if entry_path.exists():
-            shutil.rmtree(entry_path)
+        entry_fspath = self.entry_fspath(entry)
+        if entry_fspath.exists():
+            for fspath in entry_fspath.iterdir():
+                if fspath.is_dir():
+                    shutil.rmtree(fspath)
+                else:
+                    fspath.unlink()
         cached = fileset.copy_to(
-            dest_dir=entry_path.parent, stem=entry_path.name, make_dirs=True
+            dest_dir=entry_fspath.parent,
+            stem=entry_fspath.name,
+            make_dirs=True,
+            overwrite=entry.is_derivative,
         )
         logger.info(
             "Put %s into %s:%s row via direct access to archive directory",
@@ -151,9 +141,9 @@ class XnatViaCS(Xnat):
         self.put_fileset(fileset, entry)
         return entry
 
-    def entry_path(self, entry: DataEntry) -> Path:
+    def entry_fspath(self, entry: DataEntry) -> Path:
         """Determine the paths that derivatives will be saved at"""
-        assert entry.in_derivative_namespace
+        assert entry.is_derivative
         return self.output_mount.joinpath(*entry.path.split("/")[1:])
 
     def get_input_mount(self, row: DataRow) -> Path:
