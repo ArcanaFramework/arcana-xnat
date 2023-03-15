@@ -337,7 +337,7 @@ class XnatCommand(ContainerCommand):
             cmd_args.extend(
                 [
                     "--ids [SESSION_LABEL]",
-                    "--single-row [SUBJECT_LABEL],[SESSION_LABEL]",
+                    # "--single-row [SUBJECT_LABEL],[SESSION_LABEL]",
                 ]
             )
 
