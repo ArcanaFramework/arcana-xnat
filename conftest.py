@@ -110,6 +110,7 @@ def arcana_home(work_dir):
     with patch.dict(os.environ, {"ARCANA_HOME": str(arcana_home)}):
         yield arcana_home
 
+
 # -----------------------
 # Test dataset structures
 # -----------------------
@@ -155,12 +156,20 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                     FileBP(
                         path="DICOM",
                         datatype=DicomSet,
-                        filenames=["dicom/fmap/1.dcm", "dicom/fmap/2.dcm", "dicom/fmap/3.dcm"],
+                        filenames=[
+                            "dicom/fmap/1.dcm",
+                            "dicom/fmap/2.dcm",
+                            "dicom/fmap/3.dcm",
+                        ],
                     ),
                     FileBP(
-                        path="NIFTI", datatype=NiftiGz, filenames=["nifti/anat/T2w.nii.gz"]
+                        path="NIFTI",
+                        datatype=NiftiGz,
+                        filenames=["nifti/anat/T2w.nii.gz"],
                     ),
-                    FileBP(path="BIDS", datatype=Json, filenames=["nifti/anat/T2w.json"]),
+                    FileBP(
+                        path="BIDS", datatype=Json, filenames=["nifti/anat/T2w.json"]
+                    ),
                     FileBP(
                         path="SNAPSHOT", datatype=Png, filenames=["images/chelsea.png"]
                     ),
@@ -199,11 +208,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
         scans=[
             ScanBP(
                 name="scan1",
-                resources=[
-                    FileBP(
-                        path="Text", datatype=Text, filenames=["file.txt"]
-                    )
-                ],
+                resources=[FileBP(path="Text", datatype=Text, filenames=["file.txt"])],
             )
         ],
         id_composition={
@@ -266,19 +271,11 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
         scans=[
             ScanBP(
                 name="scan1",
-                resources=[
-                    FileBP(
-                        path="Text", datatype=Text, filenames=["file1.txt"]
-                    )
-                ],
+                resources=[FileBP(path="Text", datatype=Text, filenames=["file1.txt"])],
             ),
             ScanBP(
                 name="scan2",
-                resources=[
-                    FileBP(
-                        path="Text", datatype=Text, filenames=["file2.txt"]
-                    )
-                ],
+                resources=[FileBP(path="Text", datatype=Text, filenames=["file2.txt"])],
             ),
         ],
         derivatives=[
@@ -302,7 +299,11 @@ MUTABLE_DATASETS = ["basic.api", "multi.api", "basic.cs", "multi.cs"]
 
 @pytest.fixture(params=GOOD_DATASETS, scope="session")
 def xnat_dataset(
-    xnat_repository: Xnat, xnat_archive_dir: Path, source_data: Path, run_prefix: str, request
+    xnat_repository: Xnat,
+    xnat_archive_dir: Path,
+    source_data: Path,
+    run_prefix: str,
+    request,
 ):
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
@@ -314,7 +315,9 @@ def xnat_dataset(
             )
             logger.info("Creating read-only project at %s", project_id)
         else:
-            logger.info("Accessing previously created read-only project at %s", project_id)
+            logger.info(
+                "Accessing previously created read-only project at %s", project_id
+            )
     store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
     return blueprint.access_dataset(
         dataset_id=project_id,
@@ -324,7 +327,11 @@ def xnat_dataset(
 
 @pytest.fixture(params=MUTABLE_DATASETS, scope="function")
 def mutable_dataset(
-    xnat_repository: Xnat, xnat_archive_dir: Path, source_data: Path, run_prefix: str, request
+    xnat_repository: Xnat,
+    xnat_archive_dir: Path,
+    source_data: Path,
+    run_prefix: str,
+    request,
 ):
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
@@ -341,6 +348,24 @@ def mutable_dataset(
         dataset_id=project_id,
         source_data=source_data,
     )
+
+
+@pytest.fixture
+def simple_dataset(xnat_repository, work_dir, run_prefix):
+    blueprint = TestXnatDatasetBlueprint(
+        dim_lengths=[1, 1, 1],
+        scans=[
+            ScanBP(
+                name="scan1",
+                resources=[FileBP(path="TEXT", datatype=Text, filenames=["file.txt"])])
+        ],
+    )
+    project_id = (
+        run_prefix
+        + "simple"
+        + str(hex(random.getrandbits(16)))[2:]
+    )
+    return blueprint.make_dataset(xnat_repository, project_id, name="")
 
 
 def get_test_repo(
