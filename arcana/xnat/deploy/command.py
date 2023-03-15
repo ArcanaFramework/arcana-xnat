@@ -208,7 +208,7 @@ class XnatCommand(ContainerCommand):
                     "via-wrapup-command": None,
                     "as-a-child-of": "SESSION",
                     "type": "Resource",
-                    "label": output.name,
+                    "label": output.name,  # Shame that this is fixed, would be good to append the "dataset_name" to it as we do in the API put
                     "format": output.datatype.mime_like,
                 }
             )

@@ -312,6 +312,9 @@ def xnat_dataset(
             blueprint.make_dataset(
                 dataset_id=project_id, store=xnat_repository, source_data=source_data
             )
+            logger.info("Creating read-only project at %s", project_id)
+        else:
+            logger.info("Accessing previously created read-only project at %s", project_id)
     store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
     return blueprint.access_dataset(
         dataset_id=project_id,
