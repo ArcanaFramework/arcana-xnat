@@ -15,24 +15,14 @@ if ty.TYPE_CHECKING:
 @attrs.define(kw_only=True)
 class XnatCommand(ContainerCommand):
 
-    DATA_SPACE = Clinical
+    image: XnatApp = None
 
     # Hard-code the data_space of XNAT commands to be clinical
-    image: XnatApp = None
+    DATA_SPACE = Clinical
 
     def make_json(self):
         """Constructs the XNAT CS "command" JSON config, which specifies how XNAT
         should handle the containerised pipeline
-
-        Parameters
-        ----------
-        name : str
-            Name of the container service pipeline
-        registry : str
-            URI of the Docker registry to upload the image to
-        dynamic_licenses : list[tuple[str, str]]
-            licenses that need to be downloaded at runtime as they can't be stored within
-            the Docker image
 
         Returns
         -------
