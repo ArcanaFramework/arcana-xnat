@@ -307,17 +307,20 @@ def xnat_dataset(
 ):
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
-    project_id = run_prefix + dataset_id
-    with xnat4tests.connect() as login:
-        if project_id not in login.projects:
-            blueprint.make_dataset(
-                dataset_id=project_id, store=xnat_repository, source_data=source_data
-            )
-            logger.info("Creating read-only project at %s", project_id)
-        else:
-            logger.info(
-                "Accessing previously created read-only project at %s", project_id
-            )
+    project_id = run_prefix + dataset_id + str(hex(random.getrandbits(16)))[2:]
+    # with xnat_repository.connection:
+    #     if project_id not in xnat_repository.connection.projects:
+    #         blueprint.make_dataset(
+    #             dataset_id=project_id, store=xnat_repository, source_data=source_data
+    #         )
+    #         logger.info("Creating read-only project at %s", project_id)
+    #     else:
+    #         logger.info(
+    #             "Accessing previously created read-only project at %s", project_id
+    #         )
+    blueprint.make_dataset(
+        dataset_id=project_id, store=xnat_repository, source_data=source_data
+    )
     store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
     return blueprint.access_dataset(
         dataset_id=project_id,
