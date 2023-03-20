@@ -61,7 +61,7 @@ def catch_cli_exceptions():
 PKG_DIR = Path(__file__).parent
 
 
-log_level = logging.WARNING
+log_level = logging.DEBUG
 
 logger = logging.getLogger("arcana")
 logger.setLevel(log_level)
@@ -311,10 +311,12 @@ def static_dataset(
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
     project_id = run_prefix + dataset_id + str(hex(random.getrandbits(16)))[2:]
+    logger.debug("Making dataset at %s", project_id)
     blueprint.make_dataset(
         dataset_id=project_id, store=xnat_repository, source_data=source_data,
         name="",
     )
+    logger.debug("Making dataset at %s", project_id)
     return access_dataset(project_id, access_method, xnat_repository, xnat_archive_dir)
 
 
