@@ -80,6 +80,9 @@ exclude = [
     "/tests",
 ]
 
+[tool.hatch.metdata]
+allow-direct-references = true
+
 [tool.black]
 line-length = 88
 target-version = ["py38"]
