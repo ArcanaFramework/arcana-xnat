@@ -72,6 +72,15 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 sch.setFormatter(formatter)
 logger.addHandler(sch)
 
+logger = logging.getLogger("arcana")
+logger.setLevel(log_level)
+
+sch = logging.StreamHandler()
+sch.setLevel(log_level)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+sch.setFormatter(formatter)
+logger.addHandler(sch)
+
 
 @pytest.fixture(scope="session")
 def run_prefix():
