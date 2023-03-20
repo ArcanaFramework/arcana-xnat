@@ -11,7 +11,7 @@ dependencies = [
     "arcana >=0.9.8",
     "fileformats[extended] >=0.3.3",
     "fileformats-medimage[extended] >=0.2.1",
-    "xnat >=0.5.0",
+    "xnat @ git+https://gitlab.com/tclose/xnatpy@create-object-fix",
 ]
 license = {file = "LICENSE"}
 authors = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
