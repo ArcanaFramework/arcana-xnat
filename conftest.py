@@ -316,7 +316,7 @@ def static_dataset(
         dataset_id=project_id, store=xnat_repository, source_data=source_data,
         name="",
     )
-    logger.debug("Making dataset at %s", project_id)
+    logger.debug("accessing dataset at %s", project_id)
     return access_dataset(project_id, access_method, xnat_repository, xnat_archive_dir)
 
 
