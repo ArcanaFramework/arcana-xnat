@@ -4,7 +4,7 @@ from conftest import (
     TestXnatDatasetBlueprint,
     ScanBP,
     FileBP,
-    get_test_repo,
+    access_dataset,
 )
 from arcana.xnat.deploy.image import XnatApp
 from arcana.xnat.deploy.command import XnatCommand
@@ -53,10 +53,12 @@ def run_spec(
         }
         blueprint = TEST_XNAT_DATASET_BLUEPRINTS["concatenate_test"]
         project_id = run_prefix + "concatenate_test"
-        store = get_test_repo(project_id, "cs", xnat_repository, xnat_archive_dir)
-        spec["dataset"] = blueprint.make_dataset(
-            store=store,
+        blueprint.make_dataset(
+            store=xnat_repository,
             dataset_id=project_id,
+        )
+        spec["dataset"] = access_dataset(
+            project_id, "cs", xnat_repository, xnat_archive_dir
         )
         spec["params"] = {"duplicates": 2}
     elif request.param == "bids_app":
@@ -130,11 +132,13 @@ def run_spec(
             ],
         )
         project_id = run_prefix + "xnat_cs_bids_app"
-        store = get_test_repo(project_id, "cs", xnat_repository, xnat_archive_dir)
-        spec["dataset"] = blueprint.make_dataset(
-            store=store,
+        blueprint.make_dataset(
+            store=xnat_repository,
             dataset_id=project_id,
             source_data=nifti_sample_dir,
+        )
+        spec["dataset"] = access_dataset(
+            project_id, "cs", xnat_repository, xnat_archive_dir
         )
         spec["params"] = {}
     else:

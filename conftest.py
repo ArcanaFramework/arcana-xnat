@@ -19,6 +19,7 @@ import medimages4tests.dummy.nifti
 import medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c
 from arcana.core.deploy.image.base import BaseImage
 from arcana.core.data import Clinical
+from arcana.core.data.set import Dataset
 from fileformats.medimage import NiftiGzX, NiftiGz, DicomSet, NiftiX
 from fileformats.text import Plain as Text
 from fileformats.image import Png
@@ -298,44 +299,34 @@ MUTABLE_DATASETS = ["basic.api", "multi.api", "basic.cs", "multi.cs"]
 
 
 @pytest.fixture(params=GOOD_DATASETS, scope="session")
-def xnat_dataset(
+def static_dataset(
     xnat_repository: Xnat,
     xnat_archive_dir: Path,
     source_data: Path,
     run_prefix: str,
     request,
 ):
+    """Creates a static dataset to can be reused between unittests and save setup
+    times"""
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
     project_id = run_prefix + dataset_id + str(hex(random.getrandbits(16)))[2:]
-    # with xnat_repository.connection:
-    #     if project_id not in xnat_repository.connection.projects:
-    #         blueprint.make_dataset(
-    #             dataset_id=project_id, store=xnat_repository, source_data=source_data
-    #         )
-    #         logger.info("Creating read-only project at %s", project_id)
-    #     else:
-    #         logger.info(
-    #             "Accessing previously created read-only project at %s", project_id
-    #         )
     blueprint.make_dataset(
-        dataset_id=project_id, store=xnat_repository, source_data=source_data
+        dataset_id=project_id, store=xnat_repository, source_data=source_data,
+        name="",
     )
-    store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
-    return blueprint.access_dataset(
-        dataset_id=project_id,
-        store=store,
-    )
+    return access_dataset(project_id, access_method, xnat_repository, xnat_archive_dir)
 
 
 @pytest.fixture(params=MUTABLE_DATASETS, scope="function")
-def mutable_dataset(
+def dataset(
     xnat_repository: Xnat,
     xnat_archive_dir: Path,
     source_data: Path,
     run_prefix: str,
     request,
 ):
+    """Creates a dataset that can be mutated (as its name is unique to the function)"""
     dataset_id, access_method = request.param.split(".")
     blueprint = TEST_XNAT_DATASET_BLUEPRINTS[dataset_id]
     project_id = (
@@ -345,12 +336,11 @@ def mutable_dataset(
         + access_method
         + str(hex(random.getrandbits(16)))[2:]
     )
-    store = get_test_repo(project_id, access_method, xnat_repository, xnat_archive_dir)
-    return blueprint.make_dataset(
-        store=store,
-        dataset_id=project_id,
-        source_data=source_data,
+    blueprint.make_dataset(
+        dataset_id=project_id, store=xnat_repository, source_data=source_data,
+        name="",
     )
+    return access_dataset(project_id, access_method, xnat_repository, xnat_archive_dir)
 
 
 @pytest.fixture
@@ -371,12 +361,12 @@ def simple_dataset(xnat_repository, work_dir, run_prefix):
     return blueprint.make_dataset(xnat_repository, project_id, name="")
 
 
-def get_test_repo(
+def access_dataset(
     project_id: str,
     access_method: str,
     xnat_repository: Xnat,
     xnat_archive_dir: Path,
-):
+) -> Dataset:
     if access_method == "cs":
         proj_dir = xnat_archive_dir / project_id / "arc001"
         store = XnatViaCS(
@@ -392,7 +382,7 @@ def get_test_repo(
         store = xnat_repository
     else:
         assert False, f"unrecognised access method {access_method}"
-    return store
+    return store.load_dataset(project_id, name="")
 
 
 @pytest.fixture(scope="session")
