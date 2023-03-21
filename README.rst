@@ -15,11 +15,8 @@ Arcana Extension - XNAT
    :alt: Docs
 
 
-An extension of the Arcana framework to enable users to apply workflows and analyses on
-data stored within XNAT data repositories and deploy pipelines to the XNAT Container
-Service.
-
-The extension module provides the following classes
+An extension for the Arcana_ framework that adds the following classes to allow integrated
+deployment of workflows and analysis classes with XNAT_ imaging data repositories:
 
 * ``Xnat`` data store for accessing data via REST API (only)
 * ``XnatViaCS`` data store for accessing data in the XNAT archive directly when running within the XNAT Container Service
@@ -51,3 +48,4 @@ This work is licensed under a
 
 
 .. _Arcana: http://arcana.readthedocs.io
+.. _XNAT: https://xnat.org

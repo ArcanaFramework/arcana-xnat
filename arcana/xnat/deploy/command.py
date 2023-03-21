@@ -15,24 +15,14 @@ if ty.TYPE_CHECKING:
 @attrs.define(kw_only=True)
 class XnatCommand(ContainerCommand):
 
-    DATA_SPACE = Clinical
+    image: XnatApp = None
 
     # Hard-code the data_space of XNAT commands to be clinical
-    image: XnatApp = None
+    DATA_SPACE = Clinical
 
     def make_json(self):
         """Constructs the XNAT CS "command" JSON config, which specifies how XNAT
         should handle the containerised pipeline
-
-        Parameters
-        ----------
-        name : str
-            Name of the container service pipeline
-        registry : str
-            URI of the Docker registry to upload the image to
-        dynamic_licenses : list[tuple[str, str]]
-            licenses that need to be downloaded at runtime as they can't be stored within
-            the Docker image
 
         Returns
         -------
@@ -208,7 +198,7 @@ class XnatCommand(ContainerCommand):
                     "via-wrapup-command": None,
                     "as-a-child-of": "SESSION",
                     "type": "Resource",
-                    "label": output.name,
+                    "label": output.name,  # Shame that this is fixed, would be good to append the "dataset_name" to it as we do in the API put. Might be worth just dropping XNAT outputs and just using API
                     "format": output.datatype.mime_like,
                 }
             )
@@ -337,7 +327,7 @@ class XnatCommand(ContainerCommand):
             cmd_args.extend(
                 [
                     "--ids [SESSION_LABEL]",
-                    "--single-row [SUBJECT_LABEL],[SESSION_LABEL]",
+                    # "--single-row [SUBJECT_LABEL],[SESSION_LABEL]",
                 ]
             )
 

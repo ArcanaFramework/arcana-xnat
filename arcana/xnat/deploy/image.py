@@ -115,7 +115,7 @@ class XnatApp(App):
             else:
                 ip_address = "host.docker.internal"  # Mac/Windows local debug
             xnat_cs_store_entry["server"] = "http://" + ip_address + ":8080"
-        DataStore.save_entries(
+        DataStore.save_configs(
             {"xnat-cs": xnat_cs_store_entry}, config_path=build_dir / "stores.yaml"
         )
         dockerfile.run(command="mkdir -p /root/.arcana")

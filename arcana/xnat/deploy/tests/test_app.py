@@ -1,10 +1,11 @@
+from pathlib import Path
 import pytest
 from conftest import (
     TEST_XNAT_DATASET_BLUEPRINTS,
     TestXnatDatasetBlueprint,
-    ResourceBlueprint,
-    ScanBlueprint,
-    get_test_repo,
+    ScanBP,
+    FileBP,
+    access_dataset,
 )
 from arcana.xnat.deploy.image import XnatApp
 from arcana.xnat.deploy.command import XnatCommand
@@ -42,18 +43,24 @@ def run_spec(
             "registry": "a.docker.registry.io",
             "packages": {
                 "system": ["git", "vim"],
-                "pip": ["arcana-xnat", "arcana-testing"],
+                "pip": [
+                    "arcana",
+                    "arcana-xnat",
+                    "fileformats",
+                    "fileformats-testing",
+                    "fileformats-medimage",
+                    "pydra",
+                ],
             },
         }
         blueprint = TEST_XNAT_DATASET_BLUEPRINTS["concatenate_test"]
-        project_id = (
-            run_prefix
-            + "concatenate_test"
-        )
-        store = get_test_repo(project_id, "cs", xnat_repository, xnat_archive_dir)
-        spec["dataset"] = store.make_test_dataset(
-            blueprint=blueprint,
+        project_id = run_prefix + "concatenate_test"
+        blueprint.make_dataset(
+            store=xnat_repository,
             dataset_id=project_id,
+        )
+        spec["dataset"] = access_dataset(
+            project_id, "cs", xnat_repository, xnat_archive_dir
         )
         spec["params"] = {"duplicates": 2}
     elif request.param == "bids_app":
@@ -69,7 +76,14 @@ def run_spec(
             },
             "packages": {
                 "system": ["git", "vim"],
-                "pip": ["arcana-xnat", "arcana-bids"],
+                "pip": [
+                    "arcana",
+                    "arcana-xnat",
+                    "arcana-bids",
+                    "fileformats",
+                    "fileformats-medimage",
+                    "pydra",
+                ],
             },
             "command": bids_command_spec,
             "authors": [
@@ -82,29 +96,33 @@ def run_spec(
         blueprint = TestXnatDatasetBlueprint(
             dim_lengths=[1, 1, 1],
             scans=[
-                ScanBlueprint(
+                ScanBP(
                     "anat/T1w",
                     [
-                        ResourceBlueprint(
-                            "NiftiGzX", NiftiGzX, ["anat/T1w.nii.gz", "anat/T1w.json"]
+                        FileBP(
+                            path="NiftiGzX",
+                            datatype=NiftiGzX,
+                            filenames=["anat/T1w.nii.gz", "anat/T1w.json"],
                         )
                     ],
                 ),
-                ScanBlueprint(
+                ScanBP(
                     "anat/T2w",
                     [
-                        ResourceBlueprint(
-                            "NiftiGzX", NiftiGzX, ["anat/T2w.nii.gz", "anat/T2w.json"]
+                        FileBP(
+                            path="NiftiGzX",
+                            datatype=NiftiGzX,
+                            filenames=["anat/T2w.nii.gz", "anat/T2w.json"],
                         )
                     ],
                 ),
-                ScanBlueprint(
+                ScanBP(
                     "dwi/dwi",
                     [
-                        ResourceBlueprint(
-                            "NiftiGzXBvec",
-                            NiftiGzXBvec,
-                            [
+                        FileBP(
+                            path="NiftiGzXBvec",
+                            datatype=NiftiGzXBvec,
+                            filenames=[
                                 "dwi/dwi.nii.gz",
                                 "dwi/dwi.json",
                                 "dwi/dwi.bvec",
@@ -115,15 +133,14 @@ def run_spec(
                 ),
             ],
         )
-        project_id = (
-            run_prefix
-            + "xnat_cs_bids_app"
-        )
-        store = get_test_repo(project_id, "cs", xnat_repository, xnat_archive_dir)
-        spec["dataset"] = store.make_test_dataset(
-            blueprint=blueprint,
+        project_id = run_prefix + "xnat_cs_bids_app"
+        blueprint.make_dataset(
+            store=xnat_repository,
             dataset_id=project_id,
             source_data=nifti_sample_dir,
+        )
+        spec["dataset"] = access_dataset(
+            project_id, "cs", xnat_repository, xnat_archive_dir
         )
         spec["params"] = {}
     else:
@@ -185,4 +202,4 @@ def test_xnat_cs_pipeline(xnat_repository, run_spec, run_prefix, work_dir):
         assert status == "Complete", f"Workflow {workflow_id} failed.\n{out_str}"
 
         for deriv in blueprint.derivatives:
-            assert list(test_xsession.resources[deriv.name].files) == deriv.filenames
+            assert [Path(f).name for f in test_xsession.resources[deriv.path].files] == deriv.filenames
