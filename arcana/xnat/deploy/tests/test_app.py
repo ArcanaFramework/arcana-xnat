@@ -46,6 +46,7 @@ def run_spec(
                     "arcana",
                     "arcana-xnat",
                     "fileformats",
+                    "fileformats-testing",
                     "fileformats-medimage",
                     "pydra",
                 ],
