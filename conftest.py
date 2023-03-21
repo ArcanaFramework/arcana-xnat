@@ -61,7 +61,7 @@ def catch_cli_exceptions():
 PKG_DIR = Path(__file__).parent
 
 
-log_level = logging.DEBUG
+log_level = logging.WARNING
 
 logger = logging.getLogger("arcana")
 logger.setLevel(log_level)

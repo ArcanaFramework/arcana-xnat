@@ -1,3 +1,4 @@
+from pathlib import Path
 import pytest
 from conftest import (
     TEST_XNAT_DATASET_BLUEPRINTS,
@@ -201,4 +202,4 @@ def test_xnat_cs_pipeline(xnat_repository, run_spec, run_prefix, work_dir):
         assert status == "Complete", f"Workflow {workflow_id} failed.\n{out_str}"
 
         for deriv in blueprint.derivatives:
-            assert list(test_xsession.resources[deriv.path].files) == deriv.filenames
+            assert [Path(f).name for f in test_xsession.resources[deriv.path].files] == deriv.filenames
