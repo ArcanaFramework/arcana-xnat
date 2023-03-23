@@ -212,7 +212,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 filenames=["file.txt"],
             ),
         ],
-    ),  # id_composition dict
+    ),  # id_patterns dict
     "multi": TestXnatDatasetBlueprint(  # dataset name
         dim_lengths=[2, 2, 2],  # number of timepoints, groups and members respectively
         scans=[
@@ -221,10 +221,10 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 resources=[FileBP(path="Text", datatype=Text, filenames=["file.txt"])],
             )
         ],
-        id_composition={
+        id_patterns={
             "subject": r"group(?P<group>\d+)member(?P<member>\d+)",
             "session": r"timepoint(?P<timepoint>\d+).*",
-        },  # id_composition dict
+        },  # id_patterns dict
         derivatives=[
             FileBP(
                 path="deriv1",
