@@ -7,7 +7,9 @@ import json
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from warnings import warn
 import pytest
+import requests
 import numpy
 import docker
 import random
@@ -673,6 +675,16 @@ def mock_bids_app_image(mock_bids_app_script, build_cache_dir):
         build_cache_dir,
         base_image=BaseImage().reference,
     )
+
+
+@pytest.fixture(scope="session")
+def bids_validator_docker():
+    dc = docker.from_env()
+    try:
+        dc.images.pull(BIDS_VALIDATOR_DOCKER)
+    except requests.exceptions.HTTPError:
+        warn("No internet connection, so couldn't download latest BIDS validator")
+    return BIDS_VALIDATOR_DOCKER
 
 
 def build_app_image(tag_name, script, build_cache_dir, base_image):
