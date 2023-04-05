@@ -20,7 +20,7 @@ import xnat4tests
 import medimages4tests.dummy.nifti
 import medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c
 from arcana.core.deploy.image.base import BaseImage
-from arcana.core.data import Clinical
+from arcana.stdlib import Clinical
 from arcana.core.data.set import Dataset
 from fileformats.medimage import NiftiGzX, NiftiGz, DicomSet, NiftiX
 from fileformats.text import Plain as Text
