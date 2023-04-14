@@ -11,7 +11,7 @@ Arcana Extension - XNAT
    :target: https://pypi.python.org/pypi/arcana-xnat/
    :alt: Latest Version  
 .. image:: https://github.com/ArcanaFramework/arcana/actions/workflows/docs.yml/badge.svg
-   :target: https://arcanaframework.github.io/arcana/
+   :target: https://arcanaframework.github.io/arcana
    :alt: Docs
 
 

@@ -11,7 +11,7 @@ dependencies = [
     "arcana",
     "fileformats[extended] >=0.3.3",
     "fileformats-medimage[extended] >=0.2.1",
-    "xnat==0.4.3",
+    "xnat @ git+https://gitlab.com/radiology/infrastructure/xnatpy@develop",
 ]
 license = {file = "LICENSE"}
 authors = [{name = "Thomas G. Close", email = "tom.g.close@gmail.com"}]
@@ -53,7 +53,6 @@ doc = [
 test = [
     "arcana-bids >=0.1",
     "fileformats-testing",
-    "codecov",
     "medimages4tests >=0.3",
     "pytest >=5.4.3",
     "pytest-cov >=2.12.1",

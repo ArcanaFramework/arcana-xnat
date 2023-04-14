@@ -7,7 +7,9 @@ import json
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from warnings import warn
 import pytest
+import requests
 import numpy
 import docker
 import random
@@ -18,7 +20,7 @@ import xnat4tests
 import medimages4tests.dummy.nifti
 import medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c
 from arcana.core.deploy.image.base import BaseImage
-from arcana.core.data import Clinical
+from arcana.stdlib import Clinical
 from arcana.core.data.set import Dataset
 from fileformats.medimage import NiftiGzX, NiftiGz, DicomSet, NiftiX
 from fileformats.text import Plain as Text
@@ -212,7 +214,7 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 filenames=["file.txt"],
             ),
         ],
-    ),  # id_composition dict
+    ),
     "multi": TestXnatDatasetBlueprint(  # dataset name
         dim_lengths=[2, 2, 2],  # number of timepoints, groups and members respectively
         scans=[
@@ -221,10 +223,11 @@ TEST_XNAT_DATASET_BLUEPRINTS = {
                 resources=[FileBP(path="Text", datatype=Text, filenames=["file.txt"])],
             )
         ],
-        id_composition={
-            "subject": r"group(?P<group>\d+)member(?P<member>\d+)",
-            "session": r"timepoint(?P<timepoint>\d+).*",
-        },  # id_composition dict
+        id_patterns={
+            "group": r"subject::group(\d+)member\d+",
+            "member": r"subject::group\d+member(\d+)",
+            "timepoint": r"session::timepoint(\d+).*",
+        },
         derivatives=[
             FileBP(
                 path="deriv1",
@@ -672,6 +675,16 @@ def mock_bids_app_image(mock_bids_app_script, build_cache_dir):
         build_cache_dir,
         base_image=BaseImage().reference,
     )
+
+
+@pytest.fixture(scope="session")
+def bids_validator_docker():
+    dc = docker.from_env()
+    try:
+        dc.images.pull(BIDS_VALIDATOR_DOCKER)
+    except requests.exceptions.HTTPError:
+        warn("No internet connection, so couldn't download latest BIDS validator")
+    return BIDS_VALIDATOR_DOCKER
 
 
 def build_app_image(tag_name, script, build_cache_dir, base_image):
