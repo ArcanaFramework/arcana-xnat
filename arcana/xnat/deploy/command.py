@@ -15,7 +15,7 @@ if ty.TYPE_CHECKING:
 @attrs.define(kw_only=True)
 class XnatCommand(ContainerCommand):
 
-    image: XnatApp = None
+    image: ty.Optional[XnatApp] = None
 
     # Hard-code the data_space of XNAT commands to be clinical
     DATA_SPACE = Clinical
