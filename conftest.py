@@ -507,7 +507,7 @@ def command_spec():
         "task": "arcana.testing.tasks:concatenate",
         "inputs": {
             "first_file": {
-                "datatype": "fileformats.text:Plain",
+                "datatype": "text/text-file",
                 "field": "in_file1",
                 "default_column": {
                     "row_frequency": "session",
@@ -515,7 +515,7 @@ def command_spec():
                 "help_string": "the first file to pass as an input",
             },
             "second_file": {
-                "datatype": "fileformats.text:Plain",
+                "datatype": "text/text-file",
                 "field": "in_file2",
                 "default_column": {
                     "row_frequency": "session",
@@ -525,7 +525,7 @@ def command_spec():
         },
         "outputs": {
             "concatenated": {
-                "datatype": "fileformats.text:Plain",
+                "datatype": "text/text-file",
                 "field": "out_file",
                 "help_string": "an output file",
             }
@@ -556,21 +556,21 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "anat/T1w",
             },
-            "datatype": "fileformats.medimage:NiftiGzX",
+            "datatype": "medimage/nifti-gz-x",
             "help_string": "T1-weighted image",
         },
         "T2w": {
             "configuration": {
                 "path": "anat/T2w",
             },
-            "datatype": "fileformats.medimage:NiftiGzX",
+            "datatype": "medimage/nifti-gz-x",
             "help_string": "T2-weighted image",
         },
         "DWI": {
             "configuration": {
                 "path": "dwi/dwi",
             },
-            "datatype": "fileformats.medimage:NiftiGzXBvec",
+            "datatype": "medimage/nifti-gz-x-bvec",
             "help_string": "DWI-weighted image",
         },
     }
@@ -580,14 +580,14 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "file1",
             },
-            "datatype": "fileformats.text:Plain",
+            "datatype": "text/text-file",
             "help_string": "an output file",
         },
         "file2": {
             "configuration": {
                 "path": "file2",
             },
-            "datatype": "fileformats.text:Plain",
+            "datatype": "text/text-file",
             "help_string": "another output file",
         },
     }

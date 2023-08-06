@@ -82,6 +82,7 @@ def run_spec(
                     "arcana-bids",
                     "fileformats",
                     "fileformats-medimage",
+                    "fileformats-medimage-extras",
                     "pydra",
                 ],
             },
