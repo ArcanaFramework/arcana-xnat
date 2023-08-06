@@ -5,7 +5,7 @@ import attrs
 from fileformats.core import FileSet
 from arcana.core.deploy.command.base import ContainerCommand
 from arcana.xnat.data import XnatViaCS
-from arcana.stdlib import Clinical
+from arcana.common import Clinical
 from arcana.core.utils.serialize import ClassResolver
 
 if ty.TYPE_CHECKING:
