@@ -20,7 +20,7 @@ import xnat4tests
 import medimages4tests.dummy.nifti
 import medimages4tests.dummy.dicom.mri.fmap.siemens.skyra.syngo_d13c
 from arcana.core.deploy.image.base import BaseImage
-from arcana.stdlib import Clinical
+from arcana.common import Clinical
 from arcana.core.data.set import Dataset
 from fileformats.medimage import NiftiGzX, NiftiGz, DicomSet, NiftiX
 from fileformats.text import Plain as Text
@@ -34,9 +34,13 @@ from arcana.xnat.utils.testing import (
     ScanBlueprint as ScanBP,
 )
 from arcana.xnat.data.cs import XnatViaCS
-from pydra import set_input_validator
 
-set_input_validator(True)
+try:
+    from pydra import set_input_validator
+except ImportError:
+    pass
+else:
+    set_input_validator(True)
 
 # For debugging in IDE's don't catch raised exceptions and let the IDE
 # break at it
@@ -503,7 +507,7 @@ def command_spec():
         "task": "arcana.testing.tasks:concatenate",
         "inputs": {
             "first_file": {
-                "datatype": "fileformats.text:Plain",
+                "datatype": "text/text-file",
                 "field": "in_file1",
                 "default_column": {
                     "row_frequency": "session",
@@ -511,7 +515,7 @@ def command_spec():
                 "help_string": "the first file to pass as an input",
             },
             "second_file": {
-                "datatype": "fileformats.text:Plain",
+                "datatype": "text/text-file",
                 "field": "in_file2",
                 "default_column": {
                     "row_frequency": "session",
@@ -521,7 +525,7 @@ def command_spec():
         },
         "outputs": {
             "concatenated": {
-                "datatype": "fileformats.text:Plain",
+                "datatype": "text/text-file",
                 "field": "out_file",
                 "help_string": "an output file",
             }
@@ -552,21 +556,21 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "anat/T1w",
             },
-            "datatype": "fileformats.medimage:NiftiGzX",
+            "datatype": "medimage/nifti-gz-x",
             "help_string": "T1-weighted image",
         },
         "T2w": {
             "configuration": {
                 "path": "anat/T2w",
             },
-            "datatype": "fileformats.medimage:NiftiGzX",
+            "datatype": "medimage/nifti-gz-x",
             "help_string": "T2-weighted image",
         },
         "DWI": {
             "configuration": {
                 "path": "dwi/dwi",
             },
-            "datatype": "fileformats.medimage:NiftiGzXBvec",
+            "datatype": "medimage/nifti-gz-x-bvec",
             "help_string": "DWI-weighted image",
         },
     }
@@ -576,14 +580,14 @@ def bids_command_spec(mock_bids_app_executable):
             "configuration": {
                 "path": "file1",
             },
-            "datatype": "fileformats.text:Plain",
+            "datatype": "text/text-file",
             "help_string": "an output file",
         },
         "file2": {
             "configuration": {
                 "path": "file2",
             },
-            "datatype": "fileformats.text:Plain",
+            "datatype": "text/text-file",
             "help_string": "another output file",
         },
     }
