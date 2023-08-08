@@ -67,7 +67,7 @@ class XnatCommand(ContainerCommand):
         cmd_json = {
             "name": self.name,
             "description": (
-                f"{self.name} {self.version}: {self.image.title}"
+                f"{self.name} {self.image.version}: {self.image.title}"
             ),
             "label": self.name,
             "schema-version": "1.0",
@@ -91,7 +91,7 @@ class XnatCommand(ContainerCommand):
             "xnat": [
                 {
                     "name": self.name,
-                    "description": self.image.description,
+                    "description": self.image.title,
                     "contexts": [],  # context,
                     "external-inputs": [],  # external_inputs,
                     "derived-inputs": [],  # derived_inputs,
