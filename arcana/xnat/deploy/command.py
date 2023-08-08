@@ -245,7 +245,7 @@ class XnatCommand(ContainerCommand):
         # Access session via Container service args and derive
         if self.row_frequency == Clinical.session:
             # Set the object the pipeline is to be run against
-            cmd_json["xnat"][0]["context"] = ["xnat:imageSessionData"]
+            cmd_json["xnat"][0]["contexts"] = ["xnat:imageSessionData"]
             # Create Session input that  can be passed to the command line, which
             # will be populated by inputs derived from the XNAT session object
             # passed to the pipeline.
