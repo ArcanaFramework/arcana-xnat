@@ -34,11 +34,15 @@ def run_spec(
         spec["build"] = {
             "org": "arcana-tests",
             "name": "concatenate-xnat-cs",
-            "version": "1.0",
-            "description": "A pipeline to test Arcana's deployment tool",
+            "version": {
+                "package": "1.0",
+            },
+            "title": "A pipeline to test Arcana's deployment tool",
             "command": command_spec,
             "authors": [{"name": "Some One", "email": "some.one@an.email.org"}],
-            "info_url": "http://concatenate.readthefakedocs.io",
+            "docs": {
+                "info_url": "http://concatenate.readthefakedocs.io",
+            },
             "readme": "This is a test README",
             "registry": "a.docker.registry.io",
             "packages": {
