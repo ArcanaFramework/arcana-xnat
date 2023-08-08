@@ -34,11 +34,15 @@ def run_spec(
         spec["build"] = {
             "org": "arcana-tests",
             "name": "concatenate-xnat-cs",
-            "version": "1.0",
-            "description": "A pipeline to test Arcana's deployment tool",
+            "version": {
+                "package": "1.0",
+            },
+            "title": "A pipeline to test Arcana's deployment tool",
             "command": command_spec,
             "authors": [{"name": "Some One", "email": "some.one@an.email.org"}],
-            "info_url": "http://concatenate.readthefakedocs.io",
+            "docs": {
+                "info_url": "http://concatenate.readthefakedocs.io",
+            },
             "readme": "This is a test README",
             "registry": "a.docker.registry.io",
             "packages": {
@@ -67,8 +71,10 @@ def run_spec(
         spec["build"] = {
             "org": "arcana-tests",
             "name": "bids-app-xnat-cs",
-            "version": "1.0",
-            "description": "A pipeline to test wrapping of BIDS apps",
+            "version": {
+                "package": "1.0",
+            },
+            "title": "A pipeline to test wrapping of BIDS apps",
             "base_image": {
                 "name": mock_bids_app_image,
                 "package_manager": "apt",
@@ -89,7 +95,9 @@ def run_spec(
             "authors": [
                 {"name": "Some One Else", "email": "some.oneelse@an.email.org"}
             ],
-            "info_url": "http://a-bids-app.readthefakedocs.io",
+            "docs": {
+                "info_url": "http://a-bids-app.readthefakedocs.io",
+            },
             "readme": "This is another test README for BIDS app image",
             "registry": "another.docker.registry.io",
         }
