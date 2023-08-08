@@ -509,25 +509,25 @@ def command_spec():
             "first_file": {
                 "datatype": "text/text-file",
                 "field": "in_file1",
-                "default_column": {
+                "column_defaults": {
                     "row_frequency": "session",
                 },
-                "help_string": "the first file to pass as an input",
+                "help": "the first file to pass as an input",
             },
             "second_file": {
                 "datatype": "text/text-file",
                 "field": "in_file2",
-                "default_column": {
+                "column_defaults": {
                     "row_frequency": "session",
                 },
-                "help_string": "the second file to pass as an input",
+                "help": "the second file to pass as an input",
             },
         },
         "outputs": {
             "concatenated": {
                 "datatype": "text/text-file",
                 "field": "out_file",
-                "help_string": "an output file",
+                "help": "an output file",
             }
         },
         "parameters": {
@@ -536,7 +536,7 @@ def command_spec():
                 "default": 2,
                 "datatype": "int",
                 "required": True,
-                "help_string": "a parameter",
+                "help": "a parameter",
             }
         },
         "row_frequency": "session",
@@ -557,21 +557,21 @@ def bids_command_spec(mock_bids_app_executable):
                 "path": "anat/T1w",
             },
             "datatype": "medimage/nifti-gz-x",
-            "help_string": "T1-weighted image",
+            "help": "T1-weighted image",
         },
         "T2w": {
             "configuration": {
                 "path": "anat/T2w",
             },
             "datatype": "medimage/nifti-gz-x",
-            "help_string": "T2-weighted image",
+            "help": "T2-weighted image",
         },
         "DWI": {
             "configuration": {
                 "path": "dwi/dwi",
             },
             "datatype": "medimage/nifti-gz-x-bvec",
-            "help_string": "DWI-weighted image",
+            "help": "DWI-weighted image",
         },
     }
 
@@ -581,14 +581,14 @@ def bids_command_spec(mock_bids_app_executable):
                 "path": "file1",
             },
             "datatype": "text/text-file",
-            "help_string": "an output file",
+            "help": "an output file",
         },
         "file2": {
             "configuration": {
                 "path": "file2",
             },
             "datatype": "text/text-file",
-            "help_string": "another output file",
+            "help": "another output file",
         },
     }
 

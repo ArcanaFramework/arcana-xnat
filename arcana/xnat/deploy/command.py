@@ -63,18 +63,11 @@ class XnatCommand(ContainerCommand):
         dict[str, *]
             the JSON-like dictionary to specify the command to the XNAT CS
         """
-        # Generate the complete configuration JSON
-        build_iteration_str = (
-            f" ({self.image.build_iteration})"
-            if self.image.build_iteration is None
-            else ""
-        )
 
         cmd_json = {
             "name": self.name,
             "description": (
-                f"{self.name} {self.image.version}{build_iteration_str}: "
-                f"{self.image.description}"
+                f"{self.name} {self.version}: {self.image.title}"
             ),
             "label": self.name,
             "schema-version": "1.0",
@@ -128,10 +121,10 @@ class XnatCommand(ContainerCommand):
         for inpt in self.inputs:
             replacement_key = f"[{inpt.field.upper()}_INPUT]"
             if issubclass(inpt.datatype, FileSet):
-                desc = f"Match resource [SCAN_TYPE]: {inpt.help_string} "
+                desc = f"Match resource [SCAN_TYPE]: {inpt.help} "
                 input_type = "string"
             else:
-                desc = f"Match field ({inpt.datatype}) [FIELD_NAME]: {inpt.help_string} "
+                desc = f"Match field ({inpt.datatype}) [FIELD_NAME]: {inpt.help} "
                 input_type = self.COMMAND_INPUT_TYPES.get(inpt.datatype, "string")
             cmd_json["inputs"].append(
                 {
@@ -153,7 +146,7 @@ class XnatCommand(ContainerCommand):
         # Add parameters as additional inputs to inputs JSON specification
         cmd_args = []
         for param in self.parameters:
-            desc = f"Parameter ({param.datatype}): " + param.help_string
+            desc = f"Parameter ({param.datatype}): " + param.help
 
             replacement_key = f"[{param.field.upper()}_PARAM]"
 
