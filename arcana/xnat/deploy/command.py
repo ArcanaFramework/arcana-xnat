@@ -124,7 +124,7 @@ class XnatCommand(ContainerCommand):
                     datatype = inpt.column_defaults.datatype
                 else:
                     datatype = inpt.datatype
-                desc = f"Match resource ({to_mime{datatype}}) [SCAN-TYPE]: {inpt.help} "
+                desc = f"Match resource ({to_mime(datatype)}) [SCAN-TYPE]: {inpt.help} "
                 input_type = "string"
             else:
                 desc = f"Match field ({inpt.datatype}) [FIELD-NAME]: {inpt.help} "
