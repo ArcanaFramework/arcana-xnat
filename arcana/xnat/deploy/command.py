@@ -2,11 +2,10 @@ from __future__ import annotations
 import typing as ty
 import re
 import attrs
-from fileformats.core import FileSet
+from fileformats.core import FileSet, to_mime
 from arcana.core.deploy.command.base import ContainerCommand
 from arcana.xnat.data import XnatViaCS
 from arcana.common import Clinical
-from arcana.core.utils.serialize import ClassResolver
 
 if ty.TYPE_CHECKING:
     from .image import XnatApp
@@ -121,10 +120,14 @@ class XnatCommand(ContainerCommand):
         for inpt in self.inputs:
             replacement_key = f"[{inpt.field.upper()}_INPUT]"
             if issubclass(inpt.datatype, FileSet):
-                desc = f"Match resource [SCAN_TYPE]: {inpt.help} "
+                if inpt.column_defaults.datatype:
+                    datatype = inpt.column_defaults.datatype
+                else:
+                    datatype = inpt.datatype
+                desc = f"Match resource ({to_mime(datatype)}) [SCAN-TYPE]: {inpt.help} "
                 input_type = "string"
             else:
-                desc = f"Match field ({inpt.datatype}) [FIELD_NAME]: {inpt.help} "
+                desc = f"Match field ({inpt.datatype}) [FIELD-NAME]: {inpt.help} "
                 input_type = self.COMMAND_INPUT_TYPES.get(inpt.datatype, "string")
             cmd_json["inputs"].append(
                 {
@@ -177,7 +180,7 @@ class XnatCommand(ContainerCommand):
             cmd_json["outputs"].append(
                 {
                     "name": output.name,
-                    "description": f"{output.field} ({ClassResolver.tostr(output.datatype)})",
+                    "description": f"{output.field} ({to_mime(output.datatype)})",
                     "required": True,
                     "mount": "out",
                     "path": out_fname,
