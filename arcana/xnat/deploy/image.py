@@ -14,6 +14,8 @@ from .command import XnatCommand
 @attrs.define(kw_only=True)
 class XnatApp(App):
 
+    PIP_DEPENDENCIES = ("arcana-xnat", "fileformats-medimage", "fileformats-medimage-extras")
+
     command: XnatCommand = attrs.field(
         converter=ObjectConverter(
             XnatCommand
