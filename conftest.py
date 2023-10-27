@@ -25,7 +25,7 @@ from arcana.core.data.set import Dataset
 from fileformats.medimage import NiftiGzX, NiftiGz, DicomSet, NiftiX
 from fileformats.text import Plain as Text
 from fileformats.image import Png
-from fileformats.serialization import Json
+from fileformats.application import Json
 from fileformats.generic import Directory
 from arcana.xnat.data.api import Xnat
 from arcana.xnat.utils.testing import (
