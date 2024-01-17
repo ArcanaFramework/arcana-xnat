@@ -1,7 +1,6 @@
 import os.path as op
 from pathlib import Path
 import typing as ty
-from glob import glob
 import tempfile
 import logging
 import hashlib
@@ -383,6 +382,9 @@ class Xnat(RemoteStore):
         xresource = self.connection.classes.Resource(
             uri=entry.uri, xnat_session=self.connection.session
         )
+        # Delete any existing files
+        for fname in xresource.files:
+            self.connection.delete(f"{entry.uri}/files/{fname}")
         # FIXME: work out which exception upload_dir raises when it can't overwrite
         # and catch it here and add more descriptive error message
         xresource.upload_dir(cache_path, overwrite=entry.is_derivative)
